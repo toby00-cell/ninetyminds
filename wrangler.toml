@@ -1,0 +1,9 @@
+name = "ninetyminds"
+compatibility_date = "2024-09-23"
+compatibility_flags = ["nodejs_compat"]
+main = "dist/server/server.js"
+assets = { directory = "dist/client" }
+
+[vars]
+SUPABASE_URL = "https://nwtkgnxrpolwgkyijcta.supabase.co"
+VITE_SUPABASE_URL = "https://nwtkgnxrpolwgkyijcta.supabase.co"
