@@ -60,7 +60,7 @@ function Index() {
               </div>
             </div>
             <div className="absolute -bottom-4 -left-4 bg-ember text-cream rounded-xl p-3 w-36 shadow-xl rotate-[-4deg]">
-              <div className="font-display text-3xl leading-none">1,284</div>
+              <div className="font-display text-3xl leading-none">30+</div>
               <div className="text-xs uppercase tracking-widest mt-1">talents scouted</div>
             </div>
           </div>

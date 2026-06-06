@@ -7,3 +7,5 @@ assets = { directory = "dist/client" }
 [vars]
 SUPABASE_URL = "https://nwtkgnxrpolwgkyijcta.supabase.co"
 VITE_SUPABASE_URL = "https://nwtkgnxrpolwgkyijcta.supabase.co"
+SUPABASE_SERVICE_ROLE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im53dGtnbnhycG9sd2dreWlqY3RhIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4MDUyNTM0NSwiZXhwIjoyMDk2MTAxMzQ1fQ.HvvYlqM6-uvVm6GmN3VulLQwfnHKDS1PuZXY6wnQz5I"
+VITE_SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im53dGtnbnhycG9sd2dreWlqY3RhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA1MjUzNDUsImV4cCI6MjA5NjEwMTM0NX0.Ni7Lb1xwGhixTnp3sJHmltNHeQqv8zijHoCwGbfbg3E"

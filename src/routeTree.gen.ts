@@ -9,25 +9,21 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as WellnessHubRouteImport } from './routes/wellness-hub'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as HowItWorksRouteImport } from './routes/how-it-works'
 import { Route as FeaturedPlayersRouteImport } from './routes/featured-players'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as ClubsRouteImport } from './routes/clubs'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as WellnessHubIndexRouteImport } from './routes/wellness-hub.index'
 import { Route as StoriesIndexRouteImport } from './routes/stories.index'
+import { Route as WellnessHubArticleSlugRouteImport } from './routes/wellness-hub.$articleSlug'
 import { Route as StoriesStoryIdRouteImport } from './routes/stories.$storyId'
 import { Route as RegisterSuccessRouteImport } from './routes/register.success'
 import { Route as RegisterScoutRouteImport } from './routes/register.scout'
 import { Route as RegisterAthleteRouteImport } from './routes/register.athlete'
 import { Route as PlayersPlayerIdRouteImport } from './routes/players.$playerId'
 
-const WellnessHubRoute = WellnessHubRouteImport.update({
-  id: '/wellness-hub',
-  path: '/wellness-hub',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
@@ -58,9 +54,19 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const WellnessHubIndexRoute = WellnessHubIndexRouteImport.update({
+  id: '/wellness-hub/',
+  path: '/wellness-hub/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const StoriesIndexRoute = StoriesIndexRouteImport.update({
   id: '/stories/',
   path: '/stories/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const WellnessHubArticleSlugRoute = WellnessHubArticleSlugRouteImport.update({
+  id: '/wellness-hub/$articleSlug',
+  path: '/wellness-hub/$articleSlug',
   getParentRoute: () => rootRouteImport,
 } as any)
 const StoriesStoryIdRoute = StoriesStoryIdRouteImport.update({
@@ -96,13 +102,14 @@ export interface FileRoutesByFullPath {
   '/featured-players': typeof FeaturedPlayersRoute
   '/how-it-works': typeof HowItWorksRoute
   '/login': typeof LoginRoute
-  '/wellness-hub': typeof WellnessHubRoute
   '/players/$playerId': typeof PlayersPlayerIdRoute
   '/register/athlete': typeof RegisterAthleteRoute
   '/register/scout': typeof RegisterScoutRoute
   '/register/success': typeof RegisterSuccessRoute
   '/stories/$storyId': typeof StoriesStoryIdRoute
+  '/wellness-hub/$articleSlug': typeof WellnessHubArticleSlugRoute
   '/stories/': typeof StoriesIndexRoute
+  '/wellness-hub/': typeof WellnessHubIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -111,13 +118,14 @@ export interface FileRoutesByTo {
   '/featured-players': typeof FeaturedPlayersRoute
   '/how-it-works': typeof HowItWorksRoute
   '/login': typeof LoginRoute
-  '/wellness-hub': typeof WellnessHubRoute
   '/players/$playerId': typeof PlayersPlayerIdRoute
   '/register/athlete': typeof RegisterAthleteRoute
   '/register/scout': typeof RegisterScoutRoute
   '/register/success': typeof RegisterSuccessRoute
   '/stories/$storyId': typeof StoriesStoryIdRoute
+  '/wellness-hub/$articleSlug': typeof WellnessHubArticleSlugRoute
   '/stories': typeof StoriesIndexRoute
+  '/wellness-hub': typeof WellnessHubIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -127,13 +135,14 @@ export interface FileRoutesById {
   '/featured-players': typeof FeaturedPlayersRoute
   '/how-it-works': typeof HowItWorksRoute
   '/login': typeof LoginRoute
-  '/wellness-hub': typeof WellnessHubRoute
   '/players/$playerId': typeof PlayersPlayerIdRoute
   '/register/athlete': typeof RegisterAthleteRoute
   '/register/scout': typeof RegisterScoutRoute
   '/register/success': typeof RegisterSuccessRoute
   '/stories/$storyId': typeof StoriesStoryIdRoute
+  '/wellness-hub/$articleSlug': typeof WellnessHubArticleSlugRoute
   '/stories/': typeof StoriesIndexRoute
+  '/wellness-hub/': typeof WellnessHubIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -144,13 +153,14 @@ export interface FileRouteTypes {
     | '/featured-players'
     | '/how-it-works'
     | '/login'
-    | '/wellness-hub'
     | '/players/$playerId'
     | '/register/athlete'
     | '/register/scout'
     | '/register/success'
     | '/stories/$storyId'
+    | '/wellness-hub/$articleSlug'
     | '/stories/'
+    | '/wellness-hub/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -159,13 +169,14 @@ export interface FileRouteTypes {
     | '/featured-players'
     | '/how-it-works'
     | '/login'
-    | '/wellness-hub'
     | '/players/$playerId'
     | '/register/athlete'
     | '/register/scout'
     | '/register/success'
     | '/stories/$storyId'
+    | '/wellness-hub/$articleSlug'
     | '/stories'
+    | '/wellness-hub'
   id:
     | '__root__'
     | '/'
@@ -174,13 +185,14 @@ export interface FileRouteTypes {
     | '/featured-players'
     | '/how-it-works'
     | '/login'
-    | '/wellness-hub'
     | '/players/$playerId'
     | '/register/athlete'
     | '/register/scout'
     | '/register/success'
     | '/stories/$storyId'
+    | '/wellness-hub/$articleSlug'
     | '/stories/'
+    | '/wellness-hub/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -190,24 +202,18 @@ export interface RootRouteChildren {
   FeaturedPlayersRoute: typeof FeaturedPlayersRoute
   HowItWorksRoute: typeof HowItWorksRoute
   LoginRoute: typeof LoginRoute
-  WellnessHubRoute: typeof WellnessHubRoute
   PlayersPlayerIdRoute: typeof PlayersPlayerIdRoute
   RegisterAthleteRoute: typeof RegisterAthleteRoute
   RegisterScoutRoute: typeof RegisterScoutRoute
   RegisterSuccessRoute: typeof RegisterSuccessRoute
   StoriesStoryIdRoute: typeof StoriesStoryIdRoute
+  WellnessHubArticleSlugRoute: typeof WellnessHubArticleSlugRoute
   StoriesIndexRoute: typeof StoriesIndexRoute
+  WellnessHubIndexRoute: typeof WellnessHubIndexRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/wellness-hub': {
-      id: '/wellness-hub'
-      path: '/wellness-hub'
-      fullPath: '/wellness-hub'
-      preLoaderRoute: typeof WellnessHubRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/login': {
       id: '/login'
       path: '/login'
@@ -250,11 +256,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/wellness-hub/': {
+      id: '/wellness-hub/'
+      path: '/wellness-hub'
+      fullPath: '/wellness-hub/'
+      preLoaderRoute: typeof WellnessHubIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/stories/': {
       id: '/stories/'
       path: '/stories'
       fullPath: '/stories/'
       preLoaderRoute: typeof StoriesIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/wellness-hub/$articleSlug': {
+      id: '/wellness-hub/$articleSlug'
+      path: '/wellness-hub/$articleSlug'
+      fullPath: '/wellness-hub/$articleSlug'
+      preLoaderRoute: typeof WellnessHubArticleSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/stories/$storyId': {
@@ -302,13 +322,14 @@ const rootRouteChildren: RootRouteChildren = {
   FeaturedPlayersRoute: FeaturedPlayersRoute,
   HowItWorksRoute: HowItWorksRoute,
   LoginRoute: LoginRoute,
-  WellnessHubRoute: WellnessHubRoute,
   PlayersPlayerIdRoute: PlayersPlayerIdRoute,
   RegisterAthleteRoute: RegisterAthleteRoute,
   RegisterScoutRoute: RegisterScoutRoute,
   RegisterSuccessRoute: RegisterSuccessRoute,
   StoriesStoryIdRoute: StoriesStoryIdRoute,
+  WellnessHubArticleSlugRoute: WellnessHubArticleSlugRoute,
   StoriesIndexRoute: StoriesIndexRoute,
+  WellnessHubIndexRoute: WellnessHubIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

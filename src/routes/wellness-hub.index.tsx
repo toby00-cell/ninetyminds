@@ -1,7 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import wellness from "@/assets/wellness.jpg";
+import { articles } from "@/routes/wellness-hub.$articleSlug";
 
-export const Route = createFileRoute("/wellness-hub")({
+export const Route = createFileRoute("/wellness-hub/")({
   head: () => ({
     meta: [
       { title: "Wellness Hub — NinetyMinds" },
@@ -15,51 +16,6 @@ const services = [
   ["Daily mood pulse", "Two taps. Honest data, only for you."],
   ["1-to-1 sessions", "Vetted therapists who understand the game."],
   ["Team circles", "Closed spaces for clubs and academies."],
-];
-
-const resources = [
-  {
-    tag: "Anxiety",
-    title: "Pre-match nerves: what your body is actually doing",
-    excerpt: "The physical symptoms of anxiety before a big game are real — and manageable. Here's what's happening in your nervous system and how to work with it, not against it.",
-    read: "5 min",
-    author: "Dr. Femi Oladipo",
-  },
-  {
-    tag: "Burnout",
-    title: "How to tell the difference between tired and burned out",
-    excerpt: "Every athlete gets tired. Burnout is something different — and if you don't catch it early, it can end a season before it starts.",
-    read: "4 min",
-    author: "Ngozi Adimora",
-  },
-  {
-    tag: "Identity",
-    title: "What happens to your sense of self after a missed trial",
-    excerpt: "Being rejected by a club doesn't mean you aren't good enough. But the emotional aftermath can feel that way. A guide to rebuilding confidence after a setback.",
-    read: "6 min",
-    author: "Dr. Femi Oladipo",
-  },
-  {
-    tag: "Recovery",
-    title: "Injury recovery and mental health: the part no one talks about",
-    excerpt: "Physical rehab gets all the attention. But the isolation, the fear of re-injury, and the loss of identity that come with being sidelined are just as real.",
-    read: "7 min",
-    author: "Kunle Adeyemi",
-  },
-  {
-    tag: "Sleep",
-    title: "Why Nigerian athletes sleep less — and what it costs them",
-    excerpt: "Late training schedules, travel, family pressure and noisy environments all chip away at sleep. Here's the science on what that does to your game.",
-    read: "4 min",
-    author: "Dr. Femi Oladipo",
-  },
-  {
-    tag: "Pressure",
-    title: "Playing for your family: the weight behind every goal",
-    excerpt: "Many grassroots players carry the financial hopes of their household on their boots. That pressure is real, valid — and something you can learn to carry differently.",
-    read: "5 min",
-    author: "Ngozi Adimora",
-  },
 ];
 
 const tagColors: Record<string, string> = {
@@ -124,8 +80,13 @@ function WellnessHub() {
           </div>
 
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {resources.map((r) => (
-              <article key={r.title} className="bg-card border border-border rounded-2xl p-6 flex flex-col hover:shadow-md transition-shadow">
+            {articles.map((r) => (
+              <Link
+                key={r.slug}
+                to="/wellness-hub/$articleSlug"
+                params={{ articleSlug: r.slug }}
+                className="group bg-card border border-border rounded-2xl p-6 flex flex-col hover:shadow-md transition-shadow"
+              >
                 <div className="flex items-center justify-between mb-4">
                   <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${tagColors[r.tag] ?? "bg-sand text-ink"}`}>
                     {r.tag}
@@ -136,9 +97,9 @@ function WellnessHub() {
                 <p className="text-sm text-muted-foreground leading-relaxed flex-1">{r.excerpt}</p>
                 <div className="mt-5 pt-4 border-t border-border flex items-center justify-between">
                   <span className="text-xs text-muted-foreground">{r.author}</span>
-                  <button className="text-xs font-semibold text-pitch hover:underline">Read →</button>
+                  <span className="text-xs font-semibold text-pitch group-hover:underline">Read →</span>
                 </div>
-              </article>
+              </Link>
             ))}
           </div>
         </div>

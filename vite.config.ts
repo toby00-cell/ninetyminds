@@ -14,5 +14,9 @@ export default defineConfig({
     css: {
       transformer: "postcss",
     },
+    define: {
+      'process.env.SUPABASE_URL': JSON.stringify("https://nwtkgnxrpolwgkyijcta.supabase.co"),
+      'process.env.SUPABASE_SERVICE_ROLE_KEY': JSON.stringify(process.env.SUPABASE_SERVICE_ROLE_KEY),
+    },
   },
 });

@@ -13,21 +13,19 @@ let _client: ReturnType<typeof createClient<Database>> | null = null;
 export function getSupabase() {
   if (_client) return _client;
 
-  const url = process.env.SUPABASE_URL;
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const url = process.env.SUPABASE_URL 
+    ?? (globalThis as any).SUPABASE_URL
+    ?? "https://nwtkgnxrpolwgkyijcta.supabase.co";
+    
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY 
+    ?? (globalThis as any).SUPABASE_SERVICE_ROLE_KEY;
 
   if (!url || !key) {
-    throw new Error(
-      "Missing Supabase env vars. Set SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY in your .env file.",
-    );
+    throw new Error("Missing Supabase env vars.");
   }
 
   _client = createClient<Database>(url, key, {
-    auth: {
-      // Service-role client; no user sessions needed server-side.
-      persistSession: false,
-      autoRefreshToken: false,
-    },
+    auth: { persistSession: false, autoRefreshToken: false },
   });
 
   return _client;
