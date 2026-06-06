@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useRouterState } from "@tanstack/react-router";
 import { Menu, X } from "lucide-react";
+import { supabase } from "@/lib/supabase-browser";
+import type { User } from "@supabase/supabase-js";
 
 const navLinks = [
   { label: "Home", to: "/" },
@@ -13,10 +15,19 @@ const navLinks = [
 
 export function Header() {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [user, setUser] = useState<User | null>(null);
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const firstLinkRef = useRef<HTMLAnchorElement>(null);
   const toggleRef = useRef<HTMLButtonElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data: { user } }) => setUser(user));
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+    });
+    return () => subscription.unsubscribe();
+  }, []);
 
   useEffect(() => {
     setMobileOpen(false);
@@ -78,19 +89,31 @@ export function Header() {
           ))}
         </nav>
 
+        {/* Desktop auth buttons */}
         <div className="hidden md:flex items-center gap-3">
-          <Link
-            to="/login"
-            className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-          >
-            Sign in
-          </Link>
-          <Link
-            to="/register/athlete"
-            className="text-sm font-medium px-4 py-2 rounded-full bg-ink text-cream hover:bg-pitch transition-colors"
-          >
-            Join the trial →
-          </Link>
+          {user ? (
+            <Link
+              to="/dashboard"
+              className="text-sm font-medium px-4 py-2 rounded-full bg-ink text-cream hover:bg-pitch transition-colors"
+            >
+              Dashboard →
+            </Link>
+          ) : (
+            <>
+              <Link
+                to="/login"
+                className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+              >
+                Sign in
+              </Link>
+              <Link
+                to="/register/athlete"
+                className="text-sm font-medium px-4 py-2 rounded-full bg-ink text-cream hover:bg-pitch transition-colors"
+              >
+                Join the trial →
+              </Link>
+            </>
+          )}
         </div>
 
         <button
@@ -138,12 +161,29 @@ export function Header() {
               {item.label}
             </Link>
           ))}
-          <Link
-            to="/register/athlete"
-            className="mt-4 inline-flex items-center justify-center min-h-11 text-sm font-medium px-4 py-3 rounded-full bg-ink text-cream hover:bg-pitch focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring transition-colors"
-          >
-            Join the trial →
-          </Link>
+          {user ? (
+            <Link
+              to="/dashboard"
+              className="mt-4 inline-flex items-center justify-center min-h-11 text-sm font-medium px-4 py-3 rounded-full bg-ink text-cream hover:bg-pitch focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring transition-colors"
+            >
+              Dashboard →
+            </Link>
+          ) : (
+            <>
+              <Link
+                to="/login"
+                className="mt-4 px-4 py-3 rounded-lg text-base font-medium hover:bg-sand transition-colors"
+              >
+                Sign in
+              </Link>
+              <Link
+                to="/register/athlete"
+                className="inline-flex items-center justify-center min-h-11 text-sm font-medium px-4 py-3 rounded-full bg-ink text-cream hover:bg-pitch focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring transition-colors"
+              >
+                Join the trial →
+              </Link>
+            </>
+          )}
         </nav>
       </div>
     </header>

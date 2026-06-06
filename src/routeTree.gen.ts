@@ -12,11 +12,11 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as HowItWorksRouteImport } from './routes/how-it-works'
 import { Route as FeaturedPlayersRouteImport } from './routes/featured-players'
-import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as ClubsRouteImport } from './routes/clubs'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as WellnessHubIndexRouteImport } from './routes/wellness-hub.index'
 import { Route as StoriesIndexRouteImport } from './routes/stories.index'
+import { Route as DashboardIndexRouteImport } from './routes/dashboard.index'
 import { Route as WellnessHubArticleSlugRouteImport } from './routes/wellness-hub.$articleSlug'
 import { Route as StoriesStoryIdRouteImport } from './routes/stories.$storyId'
 import { Route as RegisterSuccessRouteImport } from './routes/register.success'
@@ -40,11 +40,6 @@ const FeaturedPlayersRoute = FeaturedPlayersRouteImport.update({
   path: '/featured-players',
   getParentRoute: () => rootRouteImport,
 } as any)
-const DashboardRoute = DashboardRouteImport.update({
-  id: '/dashboard',
-  path: '/dashboard',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const ClubsRoute = ClubsRouteImport.update({
   id: '/clubs',
   path: '/clubs',
@@ -63,6 +58,11 @@ const WellnessHubIndexRoute = WellnessHubIndexRouteImport.update({
 const StoriesIndexRoute = StoriesIndexRouteImport.update({
   id: '/stories/',
   path: '/stories/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DashboardIndexRoute = DashboardIndexRouteImport.update({
+  id: '/dashboard/',
+  path: '/dashboard/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const WellnessHubArticleSlugRoute = WellnessHubArticleSlugRouteImport.update({
@@ -96,15 +96,14 @@ const PlayersPlayerIdRoute = PlayersPlayerIdRouteImport.update({
   getParentRoute: () => rootRouteImport,
 } as any)
 const DashboardAdminRoute = DashboardAdminRouteImport.update({
-  id: '/admin',
-  path: '/admin',
-  getParentRoute: () => DashboardRoute,
+  id: '/dashboard/admin',
+  path: '/dashboard/admin',
+  getParentRoute: () => rootRouteImport,
 } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/clubs': typeof ClubsRoute
-  '/dashboard': typeof DashboardRouteWithChildren
   '/featured-players': typeof FeaturedPlayersRoute
   '/how-it-works': typeof HowItWorksRoute
   '/login': typeof LoginRoute
@@ -115,13 +114,13 @@ export interface FileRoutesByFullPath {
   '/register/success': typeof RegisterSuccessRoute
   '/stories/$storyId': typeof StoriesStoryIdRoute
   '/wellness-hub/$articleSlug': typeof WellnessHubArticleSlugRoute
+  '/dashboard/': typeof DashboardIndexRoute
   '/stories/': typeof StoriesIndexRoute
   '/wellness-hub/': typeof WellnessHubIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/clubs': typeof ClubsRoute
-  '/dashboard': typeof DashboardRouteWithChildren
   '/featured-players': typeof FeaturedPlayersRoute
   '/how-it-works': typeof HowItWorksRoute
   '/login': typeof LoginRoute
@@ -132,6 +131,7 @@ export interface FileRoutesByTo {
   '/register/success': typeof RegisterSuccessRoute
   '/stories/$storyId': typeof StoriesStoryIdRoute
   '/wellness-hub/$articleSlug': typeof WellnessHubArticleSlugRoute
+  '/dashboard': typeof DashboardIndexRoute
   '/stories': typeof StoriesIndexRoute
   '/wellness-hub': typeof WellnessHubIndexRoute
 }
@@ -139,7 +139,6 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/clubs': typeof ClubsRoute
-  '/dashboard': typeof DashboardRouteWithChildren
   '/featured-players': typeof FeaturedPlayersRoute
   '/how-it-works': typeof HowItWorksRoute
   '/login': typeof LoginRoute
@@ -150,6 +149,7 @@ export interface FileRoutesById {
   '/register/success': typeof RegisterSuccessRoute
   '/stories/$storyId': typeof StoriesStoryIdRoute
   '/wellness-hub/$articleSlug': typeof WellnessHubArticleSlugRoute
+  '/dashboard/': typeof DashboardIndexRoute
   '/stories/': typeof StoriesIndexRoute
   '/wellness-hub/': typeof WellnessHubIndexRoute
 }
@@ -158,7 +158,6 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/clubs'
-    | '/dashboard'
     | '/featured-players'
     | '/how-it-works'
     | '/login'
@@ -169,13 +168,13 @@ export interface FileRouteTypes {
     | '/register/success'
     | '/stories/$storyId'
     | '/wellness-hub/$articleSlug'
+    | '/dashboard/'
     | '/stories/'
     | '/wellness-hub/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/clubs'
-    | '/dashboard'
     | '/featured-players'
     | '/how-it-works'
     | '/login'
@@ -186,13 +185,13 @@ export interface FileRouteTypes {
     | '/register/success'
     | '/stories/$storyId'
     | '/wellness-hub/$articleSlug'
+    | '/dashboard'
     | '/stories'
     | '/wellness-hub'
   id:
     | '__root__'
     | '/'
     | '/clubs'
-    | '/dashboard'
     | '/featured-players'
     | '/how-it-works'
     | '/login'
@@ -203,6 +202,7 @@ export interface FileRouteTypes {
     | '/register/success'
     | '/stories/$storyId'
     | '/wellness-hub/$articleSlug'
+    | '/dashboard/'
     | '/stories/'
     | '/wellness-hub/'
   fileRoutesById: FileRoutesById
@@ -210,16 +210,17 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   ClubsRoute: typeof ClubsRoute
-  DashboardRoute: typeof DashboardRouteWithChildren
   FeaturedPlayersRoute: typeof FeaturedPlayersRoute
   HowItWorksRoute: typeof HowItWorksRoute
   LoginRoute: typeof LoginRoute
+  DashboardAdminRoute: typeof DashboardAdminRoute
   PlayersPlayerIdRoute: typeof PlayersPlayerIdRoute
   RegisterAthleteRoute: typeof RegisterAthleteRoute
   RegisterScoutRoute: typeof RegisterScoutRoute
   RegisterSuccessRoute: typeof RegisterSuccessRoute
   StoriesStoryIdRoute: typeof StoriesStoryIdRoute
   WellnessHubArticleSlugRoute: typeof WellnessHubArticleSlugRoute
+  DashboardIndexRoute: typeof DashboardIndexRoute
   StoriesIndexRoute: typeof StoriesIndexRoute
   WellnessHubIndexRoute: typeof WellnessHubIndexRoute
 }
@@ -245,13 +246,6 @@ declare module '@tanstack/react-router' {
       path: '/featured-players'
       fullPath: '/featured-players'
       preLoaderRoute: typeof FeaturedPlayersRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/dashboard': {
-      id: '/dashboard'
-      path: '/dashboard'
-      fullPath: '/dashboard'
-      preLoaderRoute: typeof DashboardRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/clubs': {
@@ -280,6 +274,13 @@ declare module '@tanstack/react-router' {
       path: '/stories'
       fullPath: '/stories/'
       preLoaderRoute: typeof StoriesIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/dashboard/': {
+      id: '/dashboard/'
+      path: '/dashboard'
+      fullPath: '/dashboard/'
+      preLoaderRoute: typeof DashboardIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/wellness-hub/$articleSlug': {
@@ -326,39 +327,28 @@ declare module '@tanstack/react-router' {
     }
     '/dashboard/admin': {
       id: '/dashboard/admin'
-      path: '/admin'
+      path: '/dashboard/admin'
       fullPath: '/dashboard/admin'
       preLoaderRoute: typeof DashboardAdminRouteImport
-      parentRoute: typeof DashboardRoute
+      parentRoute: typeof rootRouteImport
     }
   }
 }
 
-interface DashboardRouteChildren {
-  DashboardAdminRoute: typeof DashboardAdminRoute
-}
-
-const DashboardRouteChildren: DashboardRouteChildren = {
-  DashboardAdminRoute: DashboardAdminRoute,
-}
-
-const DashboardRouteWithChildren = DashboardRoute._addFileChildren(
-  DashboardRouteChildren,
-)
-
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ClubsRoute: ClubsRoute,
-  DashboardRoute: DashboardRouteWithChildren,
   FeaturedPlayersRoute: FeaturedPlayersRoute,
   HowItWorksRoute: HowItWorksRoute,
   LoginRoute: LoginRoute,
+  DashboardAdminRoute: DashboardAdminRoute,
   PlayersPlayerIdRoute: PlayersPlayerIdRoute,
   RegisterAthleteRoute: RegisterAthleteRoute,
   RegisterScoutRoute: RegisterScoutRoute,
   RegisterSuccessRoute: RegisterSuccessRoute,
   StoriesStoryIdRoute: StoriesStoryIdRoute,
   WellnessHubArticleSlugRoute: WellnessHubArticleSlugRoute,
+  DashboardIndexRoute: DashboardIndexRoute,
   StoriesIndexRoute: StoriesIndexRoute,
   WellnessHubIndexRoute: WellnessHubIndexRoute,
 }

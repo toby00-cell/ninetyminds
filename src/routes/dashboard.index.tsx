@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase-browser";
 import type { User } from "@supabase/supabase-js";
 
-export const Route = createFileRoute("/dashboard")({
+export const Route = createFileRoute("/dashboard/")({
   head: () => ({
     meta: [{ title: "Dashboard — NinetyMinds" }],
   }),
