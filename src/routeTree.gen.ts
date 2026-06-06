@@ -23,6 +23,7 @@ import { Route as RegisterSuccessRouteImport } from './routes/register.success'
 import { Route as RegisterScoutRouteImport } from './routes/register.scout'
 import { Route as RegisterAthleteRouteImport } from './routes/register.athlete'
 import { Route as PlayersPlayerIdRouteImport } from './routes/players.$playerId'
+import { Route as DashboardAdminRouteImport } from './routes/dashboard.admin'
 
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
@@ -94,14 +95,20 @@ const PlayersPlayerIdRoute = PlayersPlayerIdRouteImport.update({
   path: '/players/$playerId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DashboardAdminRoute = DashboardAdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => DashboardRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/clubs': typeof ClubsRoute
-  '/dashboard': typeof DashboardRoute
+  '/dashboard': typeof DashboardRouteWithChildren
   '/featured-players': typeof FeaturedPlayersRoute
   '/how-it-works': typeof HowItWorksRoute
   '/login': typeof LoginRoute
+  '/dashboard/admin': typeof DashboardAdminRoute
   '/players/$playerId': typeof PlayersPlayerIdRoute
   '/register/athlete': typeof RegisterAthleteRoute
   '/register/scout': typeof RegisterScoutRoute
@@ -114,10 +121,11 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/clubs': typeof ClubsRoute
-  '/dashboard': typeof DashboardRoute
+  '/dashboard': typeof DashboardRouteWithChildren
   '/featured-players': typeof FeaturedPlayersRoute
   '/how-it-works': typeof HowItWorksRoute
   '/login': typeof LoginRoute
+  '/dashboard/admin': typeof DashboardAdminRoute
   '/players/$playerId': typeof PlayersPlayerIdRoute
   '/register/athlete': typeof RegisterAthleteRoute
   '/register/scout': typeof RegisterScoutRoute
@@ -131,10 +139,11 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/clubs': typeof ClubsRoute
-  '/dashboard': typeof DashboardRoute
+  '/dashboard': typeof DashboardRouteWithChildren
   '/featured-players': typeof FeaturedPlayersRoute
   '/how-it-works': typeof HowItWorksRoute
   '/login': typeof LoginRoute
+  '/dashboard/admin': typeof DashboardAdminRoute
   '/players/$playerId': typeof PlayersPlayerIdRoute
   '/register/athlete': typeof RegisterAthleteRoute
   '/register/scout': typeof RegisterScoutRoute
@@ -153,6 +162,7 @@ export interface FileRouteTypes {
     | '/featured-players'
     | '/how-it-works'
     | '/login'
+    | '/dashboard/admin'
     | '/players/$playerId'
     | '/register/athlete'
     | '/register/scout'
@@ -169,6 +179,7 @@ export interface FileRouteTypes {
     | '/featured-players'
     | '/how-it-works'
     | '/login'
+    | '/dashboard/admin'
     | '/players/$playerId'
     | '/register/athlete'
     | '/register/scout'
@@ -185,6 +196,7 @@ export interface FileRouteTypes {
     | '/featured-players'
     | '/how-it-works'
     | '/login'
+    | '/dashboard/admin'
     | '/players/$playerId'
     | '/register/athlete'
     | '/register/scout'
@@ -198,7 +210,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   ClubsRoute: typeof ClubsRoute
-  DashboardRoute: typeof DashboardRoute
+  DashboardRoute: typeof DashboardRouteWithChildren
   FeaturedPlayersRoute: typeof FeaturedPlayersRoute
   HowItWorksRoute: typeof HowItWorksRoute
   LoginRoute: typeof LoginRoute
@@ -312,13 +324,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PlayersPlayerIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/dashboard/admin': {
+      id: '/dashboard/admin'
+      path: '/admin'
+      fullPath: '/dashboard/admin'
+      preLoaderRoute: typeof DashboardAdminRouteImport
+      parentRoute: typeof DashboardRoute
+    }
   }
 }
+
+interface DashboardRouteChildren {
+  DashboardAdminRoute: typeof DashboardAdminRoute
+}
+
+const DashboardRouteChildren: DashboardRouteChildren = {
+  DashboardAdminRoute: DashboardAdminRoute,
+}
+
+const DashboardRouteWithChildren = DashboardRoute._addFileChildren(
+  DashboardRouteChildren,
+)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ClubsRoute: ClubsRoute,
-  DashboardRoute: DashboardRoute,
+  DashboardRoute: DashboardRouteWithChildren,
   FeaturedPlayersRoute: FeaturedPlayersRoute,
   HowItWorksRoute: HowItWorksRoute,
   LoginRoute: LoginRoute,

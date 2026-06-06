@@ -1,4 +1,5 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
+
 
 export const Route = createFileRoute("/how-it-works")({
   head: () => ({
@@ -89,8 +90,8 @@ function HowItWorks() {
           Your trial begins the moment a scout opens your profile. Create yours today.
         </p>
         <div className="mt-8 flex flex-wrap gap-3 justify-center">
-          <a href="#" className="px-7 py-4 rounded-full bg-ink text-cream font-medium hover:bg-pitch transition-colors">Create athlete profile</a>
-          <a href="#" className="px-7 py-4 rounded-full border border-ink/20 font-medium hover:bg-sand">I'm a scout →</a>
+          <Link to="/register/athlete" className="px-7 py-4 rounded-full bg-ink text-cream font-medium hover:bg-pitch transition-colors">Create athlete profile</Link>
+          <Link to="/register/scout" className="px-7 py-4 rounded-full border border-ink/20 font-medium hover:bg-sand">I'm a scout →</Link>
         </div>
       </div>
     </div>
