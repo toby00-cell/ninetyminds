@@ -11,6 +11,8 @@ const navLinks = [
   { label: "How it Works", to: "/how-it-works" },
   { label: "Stories", to: "/stories" },
   { label: "Clubs", to: "/clubs" },
+  { label: "Leaderboard", to: "/leaderboard" },
+  { label: "Map", to: "/map" },
 ] as const;
 
 export function Header() {

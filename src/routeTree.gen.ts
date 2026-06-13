@@ -9,7 +9,9 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as MapRouteImport } from './routes/map'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as LeaderboardRouteImport } from './routes/leaderboard'
 import { Route as HowItWorksRouteImport } from './routes/how-it-works'
 import { Route as FeaturedPlayersRouteImport } from './routes/featured-players'
 import { Route as ClubsRouteImport } from './routes/clubs'
@@ -25,9 +27,19 @@ import { Route as RegisterAthleteRouteImport } from './routes/register.athlete'
 import { Route as PlayersPlayerIdRouteImport } from './routes/players.$playerId'
 import { Route as DashboardAdminRouteImport } from './routes/dashboard.admin'
 
+const MapRoute = MapRouteImport.update({
+  id: '/map',
+  path: '/map',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LeaderboardRoute = LeaderboardRouteImport.update({
+  id: '/leaderboard',
+  path: '/leaderboard',
   getParentRoute: () => rootRouteImport,
 } as any)
 const HowItWorksRoute = HowItWorksRouteImport.update({
@@ -106,7 +118,9 @@ export interface FileRoutesByFullPath {
   '/clubs': typeof ClubsRoute
   '/featured-players': typeof FeaturedPlayersRoute
   '/how-it-works': typeof HowItWorksRoute
+  '/leaderboard': typeof LeaderboardRoute
   '/login': typeof LoginRoute
+  '/map': typeof MapRoute
   '/dashboard/admin': typeof DashboardAdminRoute
   '/players/$playerId': typeof PlayersPlayerIdRoute
   '/register/athlete': typeof RegisterAthleteRoute
@@ -123,7 +137,9 @@ export interface FileRoutesByTo {
   '/clubs': typeof ClubsRoute
   '/featured-players': typeof FeaturedPlayersRoute
   '/how-it-works': typeof HowItWorksRoute
+  '/leaderboard': typeof LeaderboardRoute
   '/login': typeof LoginRoute
+  '/map': typeof MapRoute
   '/dashboard/admin': typeof DashboardAdminRoute
   '/players/$playerId': typeof PlayersPlayerIdRoute
   '/register/athlete': typeof RegisterAthleteRoute
@@ -141,7 +157,9 @@ export interface FileRoutesById {
   '/clubs': typeof ClubsRoute
   '/featured-players': typeof FeaturedPlayersRoute
   '/how-it-works': typeof HowItWorksRoute
+  '/leaderboard': typeof LeaderboardRoute
   '/login': typeof LoginRoute
+  '/map': typeof MapRoute
   '/dashboard/admin': typeof DashboardAdminRoute
   '/players/$playerId': typeof PlayersPlayerIdRoute
   '/register/athlete': typeof RegisterAthleteRoute
@@ -160,7 +178,9 @@ export interface FileRouteTypes {
     | '/clubs'
     | '/featured-players'
     | '/how-it-works'
+    | '/leaderboard'
     | '/login'
+    | '/map'
     | '/dashboard/admin'
     | '/players/$playerId'
     | '/register/athlete'
@@ -177,7 +197,9 @@ export interface FileRouteTypes {
     | '/clubs'
     | '/featured-players'
     | '/how-it-works'
+    | '/leaderboard'
     | '/login'
+    | '/map'
     | '/dashboard/admin'
     | '/players/$playerId'
     | '/register/athlete'
@@ -194,7 +216,9 @@ export interface FileRouteTypes {
     | '/clubs'
     | '/featured-players'
     | '/how-it-works'
+    | '/leaderboard'
     | '/login'
+    | '/map'
     | '/dashboard/admin'
     | '/players/$playerId'
     | '/register/athlete'
@@ -212,7 +236,9 @@ export interface RootRouteChildren {
   ClubsRoute: typeof ClubsRoute
   FeaturedPlayersRoute: typeof FeaturedPlayersRoute
   HowItWorksRoute: typeof HowItWorksRoute
+  LeaderboardRoute: typeof LeaderboardRoute
   LoginRoute: typeof LoginRoute
+  MapRoute: typeof MapRoute
   DashboardAdminRoute: typeof DashboardAdminRoute
   PlayersPlayerIdRoute: typeof PlayersPlayerIdRoute
   RegisterAthleteRoute: typeof RegisterAthleteRoute
@@ -227,11 +253,25 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/map': {
+      id: '/map'
+      path: '/map'
+      fullPath: '/map'
+      preLoaderRoute: typeof MapRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/login': {
       id: '/login'
       path: '/login'
       fullPath: '/login'
       preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/leaderboard': {
+      id: '/leaderboard'
+      path: '/leaderboard'
+      fullPath: '/leaderboard'
+      preLoaderRoute: typeof LeaderboardRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/how-it-works': {
@@ -340,7 +380,9 @@ const rootRouteChildren: RootRouteChildren = {
   ClubsRoute: ClubsRoute,
   FeaturedPlayersRoute: FeaturedPlayersRoute,
   HowItWorksRoute: HowItWorksRoute,
+  LeaderboardRoute: LeaderboardRoute,
   LoginRoute: LoginRoute,
+  MapRoute: MapRoute,
   DashboardAdminRoute: DashboardAdminRoute,
   PlayersPlayerIdRoute: PlayersPlayerIdRoute,
   RegisterAthleteRoute: RegisterAthleteRoute,
