@@ -32,7 +32,7 @@ export function Footer() {
           </div>
         </div>
         <div className="mt-10 pt-6 border-t border-border text-center text-sm text-muted-foreground">
-          © 2026 NinetyMinds. Made in Lagos, for the continent.
+          © 2026 NinetyMinds. Made by Tobi.com.ng, for the continent.
         </div>
       </div>
     </footer>
