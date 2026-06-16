@@ -12,6 +12,151 @@ export const Route = createFileRoute("/dashboard/")({
 
 const ADMIN_EMAIL = "brightjoel196@gmail.com";
 
+function ProfileCompletion({ profile }: { profile: any }) {
+  const checks = [
+    { label: "Profile photo", done: !!profile.img_url },
+    { label: "Bio written", done: !!profile.bio && profile.bio.length > 20 },
+    { label: "Stats added", done: (profile.stats as any[]).some((s) => parseInt(s.value) > 0) },
+    { label: "Video highlight", done: (profile.video_urls ?? []).length > 0 },
+    { label: "Highlights listed", done: (profile.highlights ?? []).length > 0 },
+  ];
+  const score = Math.round((checks.filter((c) => c.done).length / checks.length) * 100);
+  const color = score === 100 ? "bg-green-500" : score >= 60 ? "bg-pitch" : "bg-ember";
+
+  return (
+    <div className="bg-card border border-border rounded-2xl p-6">
+      <div className="flex items-center justify-between mb-3">
+        <div className="text-xs uppercase tracking-[0.2em] text-ember">Profile Completion</div>
+        <div className="font-display text-3xl text-pitch">{score}%</div>
+      </div>
+      <div className="h-2 bg-sand rounded-full overflow-hidden mb-4">
+        <div className={`h-full rounded-full transition-all ${color}`} style={{ width: `${score}%` }} />
+      </div>
+      <div className="space-y-2">
+        {checks.map((c) => (
+          <div key={c.label} className="flex items-center gap-3 text-sm">
+            <div className={`w-5 h-5 rounded-full flex items-center justify-center shrink-0 ${c.done ? "bg-pitch text-cream" : "bg-sand border border-border"}`}>
+              {c.done && <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><polyline points="20 6 9 17 4 12"/></svg>}
+            </div>
+            <span className={c.done ? "text-foreground" : "text-muted-foreground"}>{c.label}</span>
+          </div>
+        ))}
+      </div>
+      {score === 100 && <div className="mt-3 text-xs text-pitch font-medium">✓ Profile complete. Scouts can see everything they need.</div>}
+    </div>
+  );
+}
+
+function TrialTracker({ playerName }: { playerName: string }) {
+  const [applications, setApplications] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function load() {
+      const { data } = await (supabase as any)
+        .from("applications")
+        .select("*")
+        .eq("player_name", playerName)
+        .order("created_at", { ascending: false });
+      setApplications(data ?? []);
+      setLoading(false);
+    }
+    load();
+  }, [playerName]);
+
+  const statusColor: Record<string, string> = {
+    pending: "bg-yellow-50 text-yellow-700",
+    accepted: "bg-green-50 text-green-700",
+    rejected: "bg-red-50 text-red-700",
+  };
+
+  if (loading) return null;
+  if (applications.length === 0) return (
+    <div className="bg-card border border-border rounded-2xl p-6">
+      <div className="text-xs uppercase tracking-[0.2em] text-ember mb-3">Trial Applications</div>
+      <p className="text-sm text-muted-foreground">You haven't applied to any trials yet. <Link to="/clubs" className="text-pitch hover:underline">Browse clubs →</Link></p>
+    </div>
+  );
+
+  return (
+    <div className="bg-card border border-border rounded-2xl p-6">
+      <div className="text-xs uppercase tracking-[0.2em] text-ember mb-4">Trial Applications</div>
+      <div className="space-y-3">
+        {applications.map((a) => (
+          <div key={a.id} className="flex items-center justify-between gap-4 py-3 border-b border-border last:border-0">
+            <div>
+              <div className="font-medium text-sm">{a.club_name}</div>
+              <div className="text-xs text-muted-foreground">{new Date(a.created_at).toLocaleDateString("en-NG", { day: "numeric", month: "short", year: "numeric" })}</div>
+            </div>
+            <span className={`text-xs font-medium px-2.5 py-1 rounded-full capitalize ${statusColor[a.status] ?? "bg-sand text-muted-foreground"}`}>
+              {a.status}
+            </span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function SavedPlayersSection({ userId }: { userId: string }) {
+  const [saved, setSaved] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function load() {
+      const { data: savedData } = await (supabase as any)
+        .from("saved_players")
+        .select("player_slug, created_at")
+        .eq("scout_user_id", userId)
+        .order("created_at", { ascending: false });
+
+      if (!savedData || savedData.length === 0) { setLoading(false); return; }
+
+      const slugs = savedData.map((s: any) => s.player_slug);
+      const { data: players } = await (supabase as any)
+        .from("players")
+        .select("slug,name,pos,city,club,rating,img_url")
+        .in("slug", slugs);
+
+      setSaved(players ?? []);
+      setLoading(false);
+    }
+    load();
+  }, [userId]);
+
+  async function unsave(slug: string) {
+    await (supabase as any).from("saved_players").delete().eq("scout_user_id", userId).eq("player_slug", slug);
+    setSaved((prev) => prev.filter((p) => p.slug !== slug));
+  }
+
+  if (loading) return null;
+
+  return (
+    <div className="bg-card border border-border rounded-2xl p-6">
+      <div className="text-xs uppercase tracking-[0.2em] text-ember mb-4">Saved Players</div>
+      {saved.length === 0 ? (
+        <p className="text-sm text-muted-foreground">No saved players yet. <Link to="/featured-players" className="text-pitch hover:underline">Browse players →</Link></p>
+      ) : (
+        <div className="space-y-3">
+          {saved.map((p) => (
+            <div key={p.slug} className="flex items-center gap-4">
+              <div className="w-10 h-10 rounded-xl overflow-hidden shrink-0 bg-sand">
+                <img src={p.img_url ?? "/assets/player-1.jpg"} alt={p.name} className="w-full h-full object-cover" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <Link to="/players/$playerId" params={{ playerId: p.slug }} className="font-medium text-sm hover:text-pitch transition-colors">{p.name}</Link>
+                <div className="text-xs text-muted-foreground">{p.pos} · {p.city}</div>
+              </div>
+              <div className="font-display text-xl text-pitch shrink-0">{p.rating}</div>
+              <button onClick={() => unsave(p.slug)} className="text-xs text-muted-foreground hover:text-destructive transition-colors shrink-0">Remove</button>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function Dashboard() {
   const navigate = useNavigate();
   const [user, setUser] = useState<User | null>(null);
@@ -38,7 +183,6 @@ function Dashboard() {
       if (playerData) {
         setProfile({ type: "athlete", ...playerData });
         setBioValue(playerData.bio || "");
-        // Load messages
         const { data: msgs } = await (supabase as any)
           .from("messages").select("*").eq("to_player_slug", playerData.slug).order("created_at", { ascending: false });
         setMessages(msgs ?? []);
@@ -47,7 +191,6 @@ function Dashboard() {
           .from("scouts").select("*").eq("user_id", user.id).single();
         if (scoutData) setProfile({ type: "scout", ...scoutData });
       }
-
       setLoading(false);
     }
     load();
@@ -61,10 +204,8 @@ function Dashboard() {
   async function saveBio() {
     if (!profile || !user) return;
     setSavingBio(true);
-    setSaveError(null);
-    const { error } = await (supabase as any)
-      .from("players").update({ bio: bioValue }).eq("user_id", user.id);
-    if (error) { setSaveError("Failed to save bio."); }
+    const { error } = await (supabase as any).from("players").update({ bio: bioValue }).eq("user_id", user.id);
+    if (error) setSaveError("Failed to save bio.");
     else { setProfile((p: any) => ({ ...p, bio: bioValue })); setEditingBio(false); }
     setSavingBio(false);
   }
@@ -80,11 +221,10 @@ function Dashboard() {
       const { error: uploadError } = await supabase.storage.from("players").upload(path, file, { upsert: true });
       if (uploadError) throw new Error(uploadError.message);
       const { data: urlData } = supabase.storage.from("players").getPublicUrl(path);
-      const imgUrl = urlData.publicUrl;
-      const { error: updateError } = await (supabase as any).from("players").update({ img_url: imgUrl }).eq("user_id", user.id);
+      const { error: updateError } = await (supabase as any).from("players").update({ img_url: urlData.publicUrl }).eq("user_id", user.id);
       if (updateError) throw new Error(updateError.message);
-      setProfile((p: any) => ({ ...p, img_url: imgUrl }));
-    } catch (err: any) { setSaveError(err.message ?? "Photo upload failed."); }
+      setProfile((p: any) => ({ ...p, img_url: urlData.publicUrl }));
+    } catch (err: any) { setSaveError(err.message); }
     finally { setUploadingPhoto(false); }
   }
 
@@ -99,19 +239,16 @@ function Dashboard() {
   }
 
   async function removeVideoUrl(url: string) {
-    if (!user) return;
     const updated = (profile.video_urls ?? []).filter((v: string) => v !== url);
     await (supabase as any).from("players").update({ video_urls: updated }).eq("user_id", user.id);
     setProfile((p: any) => ({ ...p, video_urls: updated }));
   }
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-muted-foreground text-sm">Loading your profile...</div>
-      </div>
-    );
-  }
+  if (loading) return (
+    <div className="min-h-screen bg-background flex items-center justify-center">
+      <div className="text-muted-foreground text-sm">Loading...</div>
+    </div>
+  );
 
   return (
     <div className="min-h-screen bg-background">
@@ -122,32 +259,28 @@ function Dashboard() {
             <h1 className="font-display text-3xl">Welcome{profile?.name ? `, ${profile.name.split(" ")[0]}` : ""}.</h1>
           </div>
           <div className="flex items-center gap-4">
-            {user?.email === ADMIN_EMAIL && (
-              <Link to="/dashboard/admin" className="text-sm font-medium text-ember hover:underline">Admin →</Link>
-            )}
+            {user?.email === ADMIN_EMAIL && <Link to="/dashboard/admin" className="text-sm font-medium text-ember hover:underline">Admin →</Link>}
             <button onClick={handleSignOut} className="text-sm text-muted-foreground hover:text-foreground transition-colors">Sign out</button>
           </div>
         </div>
 
         {saveError && <div className="mb-6 bg-destructive/10 text-destructive text-sm px-4 py-3 rounded-xl">{saveError}</div>}
 
+        {/* ATHLETE */}
         {profile?.type === "athlete" && (
           <div className="space-y-6">
+            {/* Profile completion */}
+            <ProfileCompletion profile={profile} />
+
             {/* Profile card */}
             <div className="bg-card border border-border rounded-2xl p-6 sm:p-8">
               <div className="flex items-start gap-6">
                 <div className="relative shrink-0">
                   <div className="w-24 h-24 rounded-xl bg-sand border border-border overflow-hidden">
-                    {profile.img_url
-                      ? <img src={profile.img_url} alt={profile.name} className="w-full h-full object-cover" />
-                      : <div className="w-full h-full flex items-center justify-center text-muted-foreground text-xs text-center px-2">No photo</div>
-                    }
+                    {profile.img_url ? <img src={profile.img_url} alt={profile.name} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-muted-foreground text-xs text-center px-2">No photo</div>}
                   </div>
                   <label className={`absolute -bottom-2 -right-2 w-8 h-8 rounded-full bg-ink text-cream flex items-center justify-center cursor-pointer hover:bg-pitch transition-colors ${uploadingPhoto ? "opacity-50 cursor-not-allowed" : ""}`}>
-                    {uploadingPhoto
-                      ? <svg className="animate-spin" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
-                      : <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-                    }
+                    {uploadingPhoto ? <svg className="animate-spin" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg> : <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>}
                     <input type="file" accept="image/*" onChange={handlePhotoUpload} className="hidden" disabled={uploadingPhoto} />
                   </label>
                 </div>
@@ -168,7 +301,7 @@ function Dashboard() {
             </div>
 
             {/* Bio */}
-            <div className="bg-card border border-border rounded-2xl p-6 sm:p-8">
+            <div className="bg-card border border-border rounded-2xl p-6">
               <div className="flex items-center justify-between mb-3">
                 <div className="text-xs uppercase tracking-[0.2em] text-ember">Bio</div>
                 {!editingBio && <button onClick={() => setEditingBio(true)} className="text-xs font-medium text-pitch hover:underline">Edit</button>}
@@ -181,26 +314,15 @@ function Dashboard() {
                     <button onClick={saveBio} disabled={savingBio} className="px-4 py-2 rounded-xl bg-ink text-cream text-sm font-medium hover:bg-pitch transition-colors disabled:opacity-60">{savingBio ? "Saving..." : "Save bio"}</button>
                   </div>
                 </div>
-              ) : (
-                <p className="text-muted-foreground">{profile.bio || "No bio yet. Click Edit to add one."}</p>
-              )}
+              ) : <p className="text-muted-foreground">{profile.bio || "No bio yet. Click Edit to add one."}</p>}
             </div>
 
             {/* Video highlights */}
-            <div className="bg-card border border-border rounded-2xl p-6 sm:p-8">
+            <div className="bg-card border border-border rounded-2xl p-6">
               <div className="text-xs uppercase tracking-[0.2em] text-ember mb-3">Video Highlights</div>
-              <p className="text-sm text-muted-foreground mb-4">Add YouTube or other video links so scouts can watch you play.</p>
               <div className="flex gap-2 mb-4">
-                <input
-                  type="url"
-                  value={newVideo}
-                  onChange={(e) => setNewVideo(e.target.value)}
-                  placeholder="https://youtube.com/watch?v=..."
-                  className="flex-1 px-4 py-2.5 rounded-xl border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-pitch"
-                />
-                <button onClick={addVideoUrl} disabled={savingVideo || !newVideo.trim()} className="px-4 py-2.5 rounded-xl bg-ink text-cream text-sm font-medium hover:bg-pitch transition-colors disabled:opacity-60">
-                  {savingVideo ? "..." : "Add"}
-                </button>
+                <input type="url" value={newVideo} onChange={(e) => setNewVideo(e.target.value)} placeholder="https://youtube.com/watch?v=..." className="flex-1 px-4 py-2.5 rounded-xl border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-pitch" />
+                <button onClick={addVideoUrl} disabled={savingVideo || !newVideo.trim()} className="px-4 py-2.5 rounded-xl bg-ink text-cream text-sm font-medium hover:bg-pitch transition-colors disabled:opacity-60">{savingVideo ? "..." : "Add"}</button>
               </div>
               {(profile.video_urls ?? []).length > 0 ? (
                 <div className="space-y-2">
@@ -211,23 +333,21 @@ function Dashboard() {
                     </div>
                   ))}
                 </div>
-              ) : (
-                <p className="text-sm text-muted-foreground">No videos added yet.</p>
-              )}
+              ) : <p className="text-sm text-muted-foreground">No videos added yet.</p>}
             </div>
+
+            {/* Trial tracker */}
+            <TrialTracker playerName={profile.name} />
 
             {/* Messages */}
             {messages.length > 0 && (
-              <div className="bg-card border border-border rounded-2xl p-6 sm:p-8">
-                <div className="text-xs uppercase tracking-[0.2em] text-ember mb-4">Messages from Scouts</div>
+              <div className="bg-card border border-border rounded-2xl p-6">
+                <div className="text-xs uppercase tracking-[0.2em] text-ember mb-4">Messages from Scouts ({messages.length})</div>
                 <div className="space-y-4">
                   {messages.map((m) => (
                     <div key={m.id} className="border border-border rounded-xl p-4">
                       <div className="flex items-start justify-between gap-2 mb-2">
-                        <div>
-                          <div className="font-medium text-sm">{m.from_name}</div>
-                          <div className="text-xs text-muted-foreground">{m.from_org}</div>
-                        </div>
+                        <div><div className="font-medium text-sm">{m.from_name}</div><div className="text-xs text-muted-foreground">{m.from_org}</div></div>
                         <div className="text-xs text-muted-foreground shrink-0">{new Date(m.created_at).toLocaleDateString("en-NG")}</div>
                       </div>
                       <div className="text-sm font-medium mb-1">{m.subject}</div>
@@ -244,11 +364,19 @@ function Dashboard() {
           </div>
         )}
 
+        {/* SCOUT */}
         {profile?.type === "scout" && (
-          <div className="bg-card border border-border rounded-2xl p-6 sm:p-8">
-            <h2 className="font-display text-2xl mb-1">{profile.name}</h2>
-            <div className="text-sm text-muted-foreground mb-6">{profile.role} · {profile.organisation}</div>
-            <Link to="/featured-players" className="inline-flex items-center gap-2 px-5 py-3 rounded-full bg-ink text-cream text-sm font-medium hover:bg-pitch transition-colors">Browse players →</Link>
+          <div className="space-y-6">
+            <div className="bg-card border border-border rounded-2xl p-6 sm:p-8">
+              <h2 className="font-display text-2xl mb-1">{profile.name}</h2>
+              <div className="text-sm text-muted-foreground mb-6">{profile.role} · {profile.organisation}</div>
+              <div className="flex flex-wrap gap-3">
+                <Link to="/featured-players" className="px-5 py-3 rounded-full bg-ink text-cream text-sm font-medium hover:bg-pitch transition-colors">Browse players →</Link>
+                <Link to="/compare" className="px-5 py-3 rounded-full border border-border text-sm font-medium hover:bg-sand transition-colors">Compare players</Link>
+                <Link to="/leaderboard" className="px-5 py-3 rounded-full border border-border text-sm font-medium hover:bg-sand transition-colors">Leaderboard</Link>
+              </div>
+            </div>
+            {user && <SavedPlayersSection userId={user.id} />}
           </div>
         )}
 

@@ -9,11 +9,13 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as SearchRouteImport } from './routes/search'
 import { Route as MapRouteImport } from './routes/map'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as LeaderboardRouteImport } from './routes/leaderboard'
 import { Route as HowItWorksRouteImport } from './routes/how-it-works'
 import { Route as FeaturedPlayersRouteImport } from './routes/featured-players'
+import { Route as CompareRouteImport } from './routes/compare'
 import { Route as ClubsRouteImport } from './routes/clubs'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as WellnessHubIndexRouteImport } from './routes/wellness-hub.index'
@@ -27,6 +29,11 @@ import { Route as RegisterAthleteRouteImport } from './routes/register.athlete'
 import { Route as PlayersPlayerIdRouteImport } from './routes/players.$playerId'
 import { Route as DashboardAdminRouteImport } from './routes/dashboard.admin'
 
+const SearchRoute = SearchRouteImport.update({
+  id: '/search',
+  path: '/search',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const MapRoute = MapRouteImport.update({
   id: '/map',
   path: '/map',
@@ -50,6 +57,11 @@ const HowItWorksRoute = HowItWorksRouteImport.update({
 const FeaturedPlayersRoute = FeaturedPlayersRouteImport.update({
   id: '/featured-players',
   path: '/featured-players',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CompareRoute = CompareRouteImport.update({
+  id: '/compare',
+  path: '/compare',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ClubsRoute = ClubsRouteImport.update({
@@ -116,11 +128,13 @@ const DashboardAdminRoute = DashboardAdminRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/clubs': typeof ClubsRoute
+  '/compare': typeof CompareRoute
   '/featured-players': typeof FeaturedPlayersRoute
   '/how-it-works': typeof HowItWorksRoute
   '/leaderboard': typeof LeaderboardRoute
   '/login': typeof LoginRoute
   '/map': typeof MapRoute
+  '/search': typeof SearchRoute
   '/dashboard/admin': typeof DashboardAdminRoute
   '/players/$playerId': typeof PlayersPlayerIdRoute
   '/register/athlete': typeof RegisterAthleteRoute
@@ -135,11 +149,13 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/clubs': typeof ClubsRoute
+  '/compare': typeof CompareRoute
   '/featured-players': typeof FeaturedPlayersRoute
   '/how-it-works': typeof HowItWorksRoute
   '/leaderboard': typeof LeaderboardRoute
   '/login': typeof LoginRoute
   '/map': typeof MapRoute
+  '/search': typeof SearchRoute
   '/dashboard/admin': typeof DashboardAdminRoute
   '/players/$playerId': typeof PlayersPlayerIdRoute
   '/register/athlete': typeof RegisterAthleteRoute
@@ -155,11 +171,13 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/clubs': typeof ClubsRoute
+  '/compare': typeof CompareRoute
   '/featured-players': typeof FeaturedPlayersRoute
   '/how-it-works': typeof HowItWorksRoute
   '/leaderboard': typeof LeaderboardRoute
   '/login': typeof LoginRoute
   '/map': typeof MapRoute
+  '/search': typeof SearchRoute
   '/dashboard/admin': typeof DashboardAdminRoute
   '/players/$playerId': typeof PlayersPlayerIdRoute
   '/register/athlete': typeof RegisterAthleteRoute
@@ -176,11 +194,13 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/clubs'
+    | '/compare'
     | '/featured-players'
     | '/how-it-works'
     | '/leaderboard'
     | '/login'
     | '/map'
+    | '/search'
     | '/dashboard/admin'
     | '/players/$playerId'
     | '/register/athlete'
@@ -195,11 +215,13 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/clubs'
+    | '/compare'
     | '/featured-players'
     | '/how-it-works'
     | '/leaderboard'
     | '/login'
     | '/map'
+    | '/search'
     | '/dashboard/admin'
     | '/players/$playerId'
     | '/register/athlete'
@@ -214,11 +236,13 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/clubs'
+    | '/compare'
     | '/featured-players'
     | '/how-it-works'
     | '/leaderboard'
     | '/login'
     | '/map'
+    | '/search'
     | '/dashboard/admin'
     | '/players/$playerId'
     | '/register/athlete'
@@ -234,11 +258,13 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   ClubsRoute: typeof ClubsRoute
+  CompareRoute: typeof CompareRoute
   FeaturedPlayersRoute: typeof FeaturedPlayersRoute
   HowItWorksRoute: typeof HowItWorksRoute
   LeaderboardRoute: typeof LeaderboardRoute
   LoginRoute: typeof LoginRoute
   MapRoute: typeof MapRoute
+  SearchRoute: typeof SearchRoute
   DashboardAdminRoute: typeof DashboardAdminRoute
   PlayersPlayerIdRoute: typeof PlayersPlayerIdRoute
   RegisterAthleteRoute: typeof RegisterAthleteRoute
@@ -253,6 +279,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/search': {
+      id: '/search'
+      path: '/search'
+      fullPath: '/search'
+      preLoaderRoute: typeof SearchRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/map': {
       id: '/map'
       path: '/map'
@@ -286,6 +319,13 @@ declare module '@tanstack/react-router' {
       path: '/featured-players'
       fullPath: '/featured-players'
       preLoaderRoute: typeof FeaturedPlayersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/compare': {
+      id: '/compare'
+      path: '/compare'
+      fullPath: '/compare'
+      preLoaderRoute: typeof CompareRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/clubs': {
@@ -378,11 +418,13 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ClubsRoute: ClubsRoute,
+  CompareRoute: CompareRoute,
   FeaturedPlayersRoute: FeaturedPlayersRoute,
   HowItWorksRoute: HowItWorksRoute,
   LeaderboardRoute: LeaderboardRoute,
   LoginRoute: LoginRoute,
   MapRoute: MapRoute,
+  SearchRoute: SearchRoute,
   DashboardAdminRoute: DashboardAdminRoute,
   PlayersPlayerIdRoute: PlayersPlayerIdRoute,
   RegisterAthleteRoute: RegisterAthleteRoute,
