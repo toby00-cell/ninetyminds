@@ -47,6 +47,120 @@ function ProfileCompletion({ profile }: { profile: any }) {
   );
 }
 
+const POSITIONS = ["Goalkeeper","Defender","Right Back","Left Back","Centre Back","Defensive Mid","Midfielder","Attacking Mid","Winger","Forward","Striker"];
+
+function EditProfileSection({ profile, userId, onUpdate }: { profile: any; userId: string; onUpdate: (updated: any) => void }) {
+  const [editing, setEditing] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [form, setForm] = useState({
+    pos: profile.pos,
+    city: profile.city,
+    club: profile.club,
+    age: String(profile.age),
+    number: String(profile.number),
+    caps: String((profile.stats as any[]).find((s: any) => s.label === "Caps")?.value ?? "0"),
+    goals: String((profile.stats as any[]).find((s: any) => s.label === "Goals")?.value ?? "0"),
+    assists: String((profile.stats as any[]).find((s: any) => s.label === "Assists")?.value ?? "0"),
+  });
+
+  function set(field: string, value: string) { setForm((f) => ({ ...f, [field]: value })); setError(null); }
+
+  async function save() {
+    setSaving(true);
+    setError(null);
+    const { error: updateError } = await (supabase as any).from("players").update({
+      pos: form.pos,
+      city: form.city,
+      club: form.club,
+      age: parseInt(form.age),
+      number: parseInt(form.number),
+      stats: [
+        { label: "Caps", value: form.caps },
+        { label: "Goals", value: form.goals },
+        { label: "Assists", value: form.assists },
+      ],
+    }).eq("user_id", userId);
+    if (updateError) { setError("Failed to save. Please try again."); }
+    else {
+      onUpdate({
+        ...profile,
+        pos: form.pos, city: form.city, club: form.club,
+        age: parseInt(form.age), number: parseInt(form.number),
+        stats: [
+          { label: "Caps", value: form.caps },
+          { label: "Goals", value: form.goals },
+          { label: "Assists", value: form.assists },
+        ],
+      });
+      setEditing(false);
+    }
+    setSaving(false);
+  }
+
+  return (
+    <div className="bg-card border border-border rounded-2xl p-6">
+      <div className="flex items-center justify-between mb-4">
+        <div className="text-xs uppercase tracking-[0.2em] text-ember">Edit Profile</div>
+        {!editing && <button onClick={() => setEditing(true)} className="text-xs font-medium text-pitch hover:underline">Edit details</button>}
+      </div>
+      {!editing ? (
+        <div className="grid grid-cols-2 gap-3 text-sm">
+          {[["Position", profile.pos], ["City", profile.city], ["Club", profile.club], ["Age", profile.age], ["Jersey No.", profile.number]].map(([l, v]) => (
+            <div key={l as string}>
+              <div className="text-xs text-muted-foreground mb-0.5">{l}</div>
+              <div className="font-medium">{v}</div>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className="space-y-4">
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs font-medium mb-1">Position</label>
+              <select value={form.pos} onChange={(e) => set("pos", e.target.value)} className="w-full px-3 py-2.5 rounded-xl border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-pitch">
+                {POSITIONS.map((p) => <option key={p} value={p}>{p}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs font-medium mb-1">Age</label>
+              <input type="number" value={form.age} onChange={(e) => set("age", e.target.value)} min="14" max="40" className="w-full px-3 py-2.5 rounded-xl border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-pitch" />
+            </div>
+            <div>
+              <label className="block text-xs font-medium mb-1">City</label>
+              <input value={form.city} onChange={(e) => set("city", e.target.value)} className="w-full px-3 py-2.5 rounded-xl border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-pitch" />
+            </div>
+            <div>
+              <label className="block text-xs font-medium mb-1">Jersey No.</label>
+              <input type="number" value={form.number} onChange={(e) => set("number", e.target.value)} className="w-full px-3 py-2.5 rounded-xl border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-pitch" />
+            </div>
+            <div className="col-span-2">
+              <label className="block text-xs font-medium mb-1">Club / Academy</label>
+              <input value={form.club} onChange={(e) => set("club", e.target.value)} className="w-full px-3 py-2.5 rounded-xl border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-pitch" />
+            </div>
+          </div>
+          <div>
+            <label className="block text-xs font-medium mb-2">Stats</label>
+            <div className="grid grid-cols-3 gap-3">
+              {[["caps","Caps"],["goals","Goals"],["assists","Assists"]].map(([field, label]) => (
+                <div key={field}>
+                  <label className="block text-xs text-muted-foreground mb-1">{label}</label>
+                  <input type="number" value={form[field as keyof typeof form]} onChange={(e) => set(field, e.target.value)} min="0" className="w-full px-3 py-2.5 rounded-xl border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-pitch" />
+                </div>
+              ))}
+            </div>
+          </div>
+          {error && <p className="text-sm text-destructive">{error}</p>}
+          <div className="flex gap-3">
+            <button onClick={() => setEditing(false)} className="px-4 py-2 rounded-xl border border-border text-sm font-medium hover:bg-sand transition-colors">Cancel</button>
+            <button onClick={save} disabled={saving} className="flex-1 py-2 rounded-xl bg-ink text-cream text-sm font-medium hover:bg-pitch transition-colors disabled:opacity-60">{saving ? "Saving..." : "Save changes"}</button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function TrialTracker({ playerName }: { playerName: string }) {
   const [applications, setApplications] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -93,6 +207,130 @@ function TrialTracker({ playerName }: { playerName: string }) {
             </span>
           </div>
         ))}
+      </div>
+    </div>
+  );
+}
+
+// Groups messages into per-scout threads (keyed by scout_user_id) and lets the
+// player reply directly within each thread. Messages sent before the two-way
+// schema migration have no scout_user_id, so each is shown as its own
+// non-replyable "legacy" thread rather than being merged together.
+function MessageThreads({ playerSlug, playerName, playerClub }: { playerSlug: string; playerName: string; playerClub: string }) {
+  const [threads, setThreads] = useState<Record<string, any[]>>({});
+  const [loading, setLoading] = useState(true);
+  const [replyText, setReplyText] = useState<Record<string, string>>({});
+  const [sending, setSending] = useState<Record<string, boolean>>({});
+  const [replyError, setReplyError] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    async function load() {
+      const { data } = await (supabase as any)
+        .from("messages")
+        .select("*")
+        .eq("to_player_slug", playerSlug)
+        .order("created_at", { ascending: true });
+
+      const grouped: Record<string, any[]> = {};
+      (data ?? []).forEach((m: any) => {
+        const key = m.scout_user_id ?? `legacy-${m.id}`;
+        if (!grouped[key]) grouped[key] = [];
+        grouped[key].push(m);
+      });
+      setThreads(grouped);
+      setLoading(false);
+    }
+    load();
+  }, [playerSlug]);
+
+  async function sendReply(threadKey: string, originalSubject: string) {
+    const text = (replyText[threadKey] ?? "").trim();
+    if (!text) return;
+    setSending((s) => ({ ...s, [threadKey]: true }));
+    setReplyError((e) => ({ ...e, [threadKey]: "" }));
+
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) { setSending((s) => ({ ...s, [threadKey]: false })); return; }
+
+    const subject = originalSubject?.startsWith("Re: ") ? originalSubject : `Re: ${originalSubject}`;
+
+    const { data: inserted, error } = await (supabase as any).from("messages").insert({
+      from_user_id: user.id,
+      scout_user_id: threadKey,
+      to_player_slug: playerSlug,
+      from_name: playerName,
+      from_org: playerClub,
+      subject,
+      body: text,
+      sender_type: "player",
+    }).select().single();
+
+    if (error || !inserted) {
+      setReplyError((e) => ({ ...e, [threadKey]: "Failed to send reply. Please try again." }));
+    } else {
+      setThreads((prev) => ({ ...prev, [threadKey]: [...(prev[threadKey] ?? []), inserted] }));
+      setReplyText((r) => ({ ...r, [threadKey]: "" }));
+    }
+    setSending((s) => ({ ...s, [threadKey]: false }));
+  }
+
+  if (loading) return null;
+  const threadKeys = Object.keys(threads);
+  if (threadKeys.length === 0) return null;
+
+  return (
+    <div className="bg-card border border-border rounded-2xl p-6">
+      <div className="text-xs uppercase tracking-[0.2em] text-ember mb-4">Messages from Scouts ({threadKeys.length})</div>
+      <div className="space-y-6">
+        {threadKeys.map((threadKey) => {
+          const msgs = threads[threadKey];
+          const first = msgs[0];
+          const isLegacy = threadKey.startsWith("legacy-");
+
+          return (
+            <div key={threadKey} className="border border-border rounded-xl p-4 space-y-4">
+              {msgs.map((m) => (
+                <div key={m.id} className={m.sender_type === "player" ? "ml-6" : ""}>
+                  <div className="flex items-start justify-between gap-2 mb-1">
+                    <div>
+                      <div className="font-medium text-sm">{m.sender_type === "player" ? "You" : m.from_name}</div>
+                      {m.sender_type !== "player" && <div className="text-xs text-muted-foreground">{m.from_org}</div>}
+                    </div>
+                    <div className="text-xs text-muted-foreground shrink-0">{new Date(m.created_at).toLocaleDateString("en-NG")}</div>
+                  </div>
+                  {m.sender_type !== "player" && <div className="text-sm font-medium mb-1">{m.subject}</div>}
+                  <p className={m.sender_type === "player" ? "text-sm bg-sand rounded-xl px-3 py-2" : "text-sm text-muted-foreground"}>{m.body}</p>
+                </div>
+              ))}
+
+              {isLegacy ? (
+                <p className="text-xs text-muted-foreground pt-2 border-t border-border">
+                  This message was sent before replies were supported, so it can't be replied to here.
+                </p>
+              ) : (
+                <div className="pt-2 border-t border-border space-y-2">
+                  {replyError[threadKey] && <p className="text-xs text-destructive">{replyError[threadKey]}</p>}
+                  <div className="flex gap-2">
+                    <input
+                      value={replyText[threadKey] ?? ""}
+                      onChange={(e) => setReplyText((r) => ({ ...r, [threadKey]: e.target.value }))}
+                      onKeyDown={(e) => e.key === "Enter" && sendReply(threadKey, first.subject)}
+                      placeholder={`Reply to ${first.from_name}...`}
+                      className="flex-1 px-3 py-2 rounded-xl border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-pitch"
+                    />
+                    <button
+                      onClick={() => sendReply(threadKey, first.subject)}
+                      disabled={sending[threadKey] || !(replyText[threadKey] ?? "").trim()}
+                      className="px-4 py-2 rounded-xl bg-ink text-cream text-sm font-medium hover:bg-pitch transition-colors disabled:opacity-60"
+                    >
+                      {sending[threadKey] ? "..." : "Reply"}
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          );
+        })}
       </div>
     </div>
   );
@@ -169,7 +407,6 @@ function Dashboard() {
   const [savingVideo, setSavingVideo] = useState(false);
   const [newVideo, setNewVideo] = useState("");
   const [saveError, setSaveError] = useState<string | null>(null);
-  const [messages, setMessages] = useState<any[]>([]);
 
   useEffect(() => {
     async function load() {
@@ -183,9 +420,6 @@ function Dashboard() {
       if (playerData) {
         setProfile({ type: "athlete", ...playerData });
         setBioValue(playerData.bio || "");
-        const { data: msgs } = await (supabase as any)
-          .from("messages").select("*").eq("to_player_slug", playerData.slug).order("created_at", { ascending: false });
-        setMessages(msgs ?? []);
       } else {
         const { data: scoutData } = await (supabase as any)
           .from("scouts").select("*").eq("user_id", user.id).single();
@@ -300,6 +534,9 @@ function Dashboard() {
               </div>
             </div>
 
+            {/* Edit profile details */}
+            {user && <EditProfileSection profile={profile} userId={user.id} onUpdate={setProfile} />}
+
             {/* Bio */}
             <div className="bg-card border border-border rounded-2xl p-6">
               <div className="flex items-center justify-between mb-3">
@@ -339,24 +576,8 @@ function Dashboard() {
             {/* Trial tracker */}
             <TrialTracker playerName={profile.name} />
 
-            {/* Messages */}
-            {messages.length > 0 && (
-              <div className="bg-card border border-border rounded-2xl p-6">
-                <div className="text-xs uppercase tracking-[0.2em] text-ember mb-4">Messages from Scouts ({messages.length})</div>
-                <div className="space-y-4">
-                  {messages.map((m) => (
-                    <div key={m.id} className="border border-border rounded-xl p-4">
-                      <div className="flex items-start justify-between gap-2 mb-2">
-                        <div><div className="font-medium text-sm">{m.from_name}</div><div className="text-xs text-muted-foreground">{m.from_org}</div></div>
-                        <div className="text-xs text-muted-foreground shrink-0">{new Date(m.created_at).toLocaleDateString("en-NG")}</div>
-                      </div>
-                      <div className="text-sm font-medium mb-1">{m.subject}</div>
-                      <p className="text-sm text-muted-foreground">{m.body}</p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
+            {/* Messages — now threaded, with reply support */}
+            <MessageThreads playerSlug={profile.slug} playerName={profile.name} playerClub={profile.club} />
 
             <Link to="/players/$playerId" params={{ playerId: profile.slug }} className="inline-flex items-center gap-2 text-sm font-medium text-pitch hover:underline">
               View your public profile →

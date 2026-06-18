@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { supabase } from "@/lib/supabase-browser";
 
 export const Route = createFileRoute("/register/scout")({
@@ -18,6 +18,7 @@ function ScoutRegister() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const submittingRef = useRef(false); // guards against double-click firing two submits before re-render
 
   const [form, setForm] = useState({
     email: "",
@@ -33,6 +34,8 @@ function ScoutRegister() {
   }
 
   async function handleSubmit() {
+    if (submittingRef.current) return;
+
     if (!form.email || !form.password || !form.name || !form.organisation || !form.role) {
       return setError("Please fill in all fields.");
     }
@@ -40,6 +43,7 @@ function ScoutRegister() {
       return setError("Password must be at least 8 characters.");
     }
 
+    submittingRef.current = true;
     setLoading(true);
     setError(null);
 
@@ -54,8 +58,19 @@ function ScoutRegister() {
       });
 
       if (authError) throw new Error(authError.message);
-      const userId = authData.user?.id;
-      if (!userId) throw new Error("Signup failed — no user returned.");
+
+      const user = authData.user;
+      if (!user) throw new Error("Signup failed — no user returned.");
+      const userId = user.id;
+
+      // Supabase doesn't error when the email already belongs to an existing
+      // account — it silently returns that existing user's id with an empty
+      // `identities` array. Catch that here, before we try to write a second
+      // scouts row for the same user_id (which is what was throwing the
+      // "duplicate key value violates unique constraint scouts_user_id_key" error).
+      if (user.identities && user.identities.length === 0) {
+        throw new Error("An account with this email already exists. Please sign in instead.");
+      }
 
       // 2. Insert scout profile
       const { error: insertError } = await (supabase as any).from("scouts").insert({
@@ -65,13 +80,22 @@ function ScoutRegister() {
         role: form.role,
       });
 
-      if (insertError) throw new Error(`Profile creation failed: ${insertError.message}`);
+      if (insertError) {
+        // Belt-and-suspenders: if a profile somehow already exists for this
+        // user (race condition, retry after a partial failure, etc.), give a
+        // clear message instead of a raw Postgres error.
+        if (insertError.code === "23505") {
+          throw new Error("You already have a scout profile for this account. Please sign in instead.");
+        }
+        throw new Error(`Profile creation failed: ${insertError.message}`);
+      }
 
       navigate({ to: "/register/success" });
     } catch (err: any) {
       setError(err.message ?? "Something went wrong.");
     } finally {
       setLoading(false);
+      submittingRef.current = false;
     }
   }
 

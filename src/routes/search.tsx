@@ -12,6 +12,7 @@ export const Route = createFileRoute("/search")({
 function SearchPage() {
   const [query, setQuery] = useState("");
   const [players, setPlayers] = useState<any[]>([]);
+  const [scouts, setScouts] = useState<any[]>([]);
   const [stories, setStories] = useState<any[]>([]);
   const [clubs, setClubs] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
@@ -30,20 +31,23 @@ function SearchPage() {
 
     const q = query.toLowerCase();
 
-    const [{ data: playerData }, { data: storyData }] = await Promise.all([
+    const [{ data: playerData }, { data: storyData }, { data: scoutData }] = await Promise.all([
       (supabase as any).from("players").select("slug,name,pos,city,club,rating,img_url")
         .or(`name.ilike.%${q}%,pos.ilike.%${q}%,city.ilike.%${q}%,club.ilike.%${q}%`),
       (supabase as any).from("stories").select("slug,title,excerpt,tag,read_time,author_name")
         .or(`title.ilike.%${q}%,excerpt.ilike.%${q}%,tag.ilike.%${q}%`),
+      (supabase as any).from("scouts").select("user_id,name,organisation,role")
+        .or(`name.ilike.%${q}%,organisation.ilike.%${q}%,role.ilike.%${q}%`),
     ]);
 
     setPlayers(playerData ?? []);
     setStories(storyData ?? []);
+    setScouts(scoutData ?? []);
     setClubs(CLUBS.filter((c) => c.toLowerCase().includes(q)));
     setLoading(false);
   }
 
-  const total = players.length + stories.length + clubs.length;
+  const total = players.length + stories.length + clubs.length + scouts.length;
 
   return (
     <div className="min-h-screen bg-background">
@@ -58,7 +62,7 @@ function SearchPage() {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && search()}
-            placeholder="Search players, stories, clubs..."
+            placeholder="Search players, scouts, stories, clubs..."
             className="flex-1 px-5 py-4 rounded-2xl border border-border bg-card text-base focus:outline-none focus:ring-2 focus:ring-pitch"
             autoFocus
           />
@@ -94,6 +98,27 @@ function SearchPage() {
                   </div>
                   <div className="shrink-0 font-display text-2xl text-pitch">{p.rating}</div>
                 </Link>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* Scouts */}
+        {scouts.length > 0 && (
+          <section className="mb-10">
+            <div className="text-xs uppercase tracking-[0.2em] text-ember mb-4">Scouts ({scouts.length})</div>
+            <div className="space-y-3">
+              {scouts.map((s) => (
+                <div key={s.user_id}
+                  className="flex items-center gap-4 bg-card border border-border rounded-2xl p-4">
+                  <div className="w-12 h-12 rounded-xl bg-pitch text-cream grid place-items-center font-display text-lg shrink-0">
+                    {s.name.charAt(0)}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="font-display text-lg">{s.name}</div>
+                    <div className="text-sm text-muted-foreground">{s.role} · {s.organisation}</div>
+                  </div>
+                </div>
               ))}
             </div>
           </section>
@@ -138,7 +163,7 @@ function SearchPage() {
         {searched && !loading && total === 0 && (
           <div className="text-center py-20">
             <p className="text-muted-foreground mb-2">No results for "{query}".</p>
-            <p className="text-sm text-muted-foreground">Try a player name, position, city, or club.</p>
+            <p className="text-sm text-muted-foreground">Try a player name, position, city, club, or scout/organisation.</p>
           </div>
         )}
 

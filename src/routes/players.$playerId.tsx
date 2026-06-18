@@ -91,26 +91,60 @@ function SaveButton({ slug }: { slug: string }) {
 
 function ScoutContactForm({ playerSlug, playerName }: { playerSlug: string; playerName: string }) {
   const [open, setOpen] = useState(false);
-  const [form, setForm] = useState({ from_name: "", from_org: "", subject: "", body: "" });
+  const [checkingAuth, setCheckingAuth] = useState(true);
+  const [scout, setScout] = useState<{ id: string; name: string; organisation: string } | null>(null);
+  const [form, setForm] = useState({ subject: "", body: "" });
   const [sending, setSending] = useState(false);
   const [sent, setSent] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  useEffect(() => {
+    async function loadScout() {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) { setCheckingAuth(false); return; }
+      const { data: scoutProfile } = await (supabase as any)
+        .from("scouts").select("name,organisation").eq("user_id", user.id).single();
+      if (scoutProfile) setScout({ id: user.id, name: scoutProfile.name, organisation: scoutProfile.organisation });
+      setCheckingAuth(false);
+    }
+    loadScout();
+  }, []);
+
   function set(field: string, value: string) { setForm((f) => ({ ...f, [field]: value })); setError(null); }
 
   async function send() {
-    if (!form.from_name || !form.from_org || !form.subject || !form.body) return setError("Please fill in all fields.");
+    if (!scout) return;
+    if (!form.subject || !form.body) return setError("Please fill in all fields.");
     setSending(true);
+    // from_user_id / scout_user_id come from the authenticated scout's own account —
+    // never from typed input — so a scout can no longer impersonate another name/org,
+    // and the player has a real account to reply back to.
     const { error: insertError } = await (supabase as any).from("messages").insert({
-      from_name: form.from_name, from_org: form.from_org,
-      subject: form.subject, body: form.body, to_player_slug: playerSlug,
+      from_user_id: scout.id,
+      scout_user_id: scout.id,
+      from_name: scout.name,
+      from_org: scout.organisation,
+      subject: form.subject,
+      body: form.body,
+      to_player_slug: playerSlug,
+      sender_type: "scout",
     });
     if (insertError) setError("Failed to send. Please try again.");
     else { setSent(true); setOpen(false); }
     setSending(false);
   }
 
+  if (checkingAuth) return null;
+
   if (sent) return <div className="bg-pitch/20 text-cream rounded-xl px-4 py-3 text-sm">✓ Message sent to {playerName}'s profile.</div>;
+
+  if (!scout) {
+    return (
+      <div className="bg-cream/5 border border-cream/10 rounded-xl px-4 py-3 text-sm text-cream/70">
+        <Link to="/login" className="text-ember hover:underline">Sign in as a scout</Link> to contact this player.
+      </div>
+    );
+  }
 
   return (
     <div>
@@ -118,8 +152,7 @@ function ScoutContactForm({ playerSlug, playerName }: { playerSlug: string; play
         <button onClick={() => setOpen(true)} className="w-full py-3 rounded-xl bg-ember text-cream text-sm font-medium hover:opacity-90 transition">Contact this player →</button>
       ) : (
         <div className="space-y-3">
-          <input value={form.from_name} onChange={(e) => set("from_name", e.target.value)} placeholder="Your name" className="w-full px-3 py-2.5 rounded-xl border border-cream/20 bg-cream/5 text-cream text-sm placeholder:text-cream/40 focus:outline-none focus:ring-2 focus:ring-ember" />
-          <input value={form.from_org} onChange={(e) => set("from_org", e.target.value)} placeholder="Your club / organisation" className="w-full px-3 py-2.5 rounded-xl border border-cream/20 bg-cream/5 text-cream text-sm placeholder:text-cream/40 focus:outline-none focus:ring-2 focus:ring-ember" />
+          <div className="text-xs text-cream/50">Sending as {scout.name} · {scout.organisation}</div>
           <input value={form.subject} onChange={(e) => set("subject", e.target.value)} placeholder="Subject" className="w-full px-3 py-2.5 rounded-xl border border-cream/20 bg-cream/5 text-cream text-sm placeholder:text-cream/40 focus:outline-none focus:ring-2 focus:ring-ember" />
           <textarea value={form.body} onChange={(e) => set("body", e.target.value)} rows={3} placeholder="Your message..." className="w-full px-3 py-2.5 rounded-xl border border-cream/20 bg-cream/5 text-cream text-sm placeholder:text-cream/40 focus:outline-none focus:ring-2 focus:ring-ember resize-none" />
           {error && <p className="text-xs text-red-400">{error}</p>}

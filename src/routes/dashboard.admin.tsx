@@ -108,6 +108,7 @@ function PlayersTab() {
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editRating, setEditRating] = useState("");
   const [saving, setSaving] = useState(false);
+  const [expandedId, setExpandedId] = useState<number | null>(null);
 
   useEffect(() => {
     async function load() {
@@ -134,35 +135,117 @@ function PlayersTab() {
 
   if (loading) return <div className="text-sm text-muted-foreground">Loading players...</div>;
 
+  const unrated = players.filter((p) => !p.rating || p.rating === 0);
+
   return (
     <div className="space-y-3">
-      <div className="text-sm text-muted-foreground mb-4">{players.length} players registered</div>
-      {players.map((p) => (
-        <div key={p.id} className="bg-card border border-border rounded-2xl p-5 flex items-center gap-4">
-          <div className="w-12 h-12 rounded-xl bg-sand border border-border overflow-hidden shrink-0">
-            {p.img_url ? <img src={p.img_url} alt={p.name} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-xs text-muted-foreground">No img</div>}
+      <div className="flex items-center gap-3 mb-4">
+        <div className="text-sm text-muted-foreground">{players.length} players registered</div>
+        {unrated.length > 0 && (
+          <div className="text-xs font-medium bg-ember/10 text-ember px-2.5 py-1 rounded-full">
+            {unrated.length} unrated
           </div>
-          <div className="flex-1 min-w-0">
-            <div className="font-medium">{p.name}</div>
-            <div className="text-sm text-muted-foreground">{p.pos} · {p.city} · {p.club}</div>
-          </div>
-          <div className="flex items-center gap-3 shrink-0">
-            {editingId === p.id ? (
-              <div className="flex items-center gap-2">
-                <input type="number" value={editRating} onChange={(e) => setEditRating(e.target.value)} min="1" max="99" className="w-16 px-2 py-1 rounded-lg border border-border text-sm focus:outline-none focus:ring-2 focus:ring-pitch" />
-                <button onClick={() => saveRating(p.id)} disabled={saving} className="text-xs font-medium text-pitch hover:underline">{saving ? "..." : "Save"}</button>
-                <button onClick={() => setEditingId(null)} className="text-xs text-muted-foreground hover:text-foreground">Cancel</button>
+        )}
+      </div>
+      {players.map((p) => {
+        const isNew = !p.rating || p.rating === 0;
+        const isExpanded = expandedId === p.id;
+        return (
+          <div key={p.id} className={`bg-card border rounded-2xl overflow-hidden transition-all ${isNew ? "border-ember/40" : "border-border"}`}>
+            {/* Main row */}
+            <div className="p-5 flex items-center gap-4">
+              <div className="w-12 h-12 rounded-xl bg-sand border border-border overflow-hidden shrink-0">
+                {p.img_url
+                  ? <img src={p.img_url} alt={p.name} className="w-full h-full object-cover" />
+                  : <div className="w-full h-full flex items-center justify-center text-xs text-muted-foreground">No img</div>}
               </div>
-            ) : (
-              <button onClick={() => { setEditingId(p.id); setEditRating(String(p.rating)); }} className="flex items-center gap-1.5 bg-pitch/10 text-pitch text-xs font-medium px-3 py-1.5 rounded-full hover:bg-pitch/20 transition">
-                Rating: {p.rating}
-              </button>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2">
+                  <div className="font-medium">{p.name}</div>
+                  {isNew && (
+                    <span className="text-[10px] font-bold uppercase tracking-wider bg-ember text-cream px-2 py-0.5 rounded-full">New</span>
+                  )}
+                </div>
+                <div className="text-sm text-muted-foreground">{p.pos} · {p.city} · {p.club}</div>
+              </div>
+              <div className="flex items-center gap-3 shrink-0">
+                {editingId === p.id ? (
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="number"
+                      value={editRating}
+                      onChange={(e) => setEditRating(e.target.value)}
+                      min="1" max="99"
+                      className="w-16 px-2 py-1 rounded-lg border border-border text-sm focus:outline-none focus:ring-2 focus:ring-pitch"
+                    />
+                    <button onClick={() => saveRating(p.id)} disabled={saving} className="text-xs font-medium text-pitch hover:underline">{saving ? "..." : "Save"}</button>
+                    <button onClick={() => setEditingId(null)} className="text-xs text-muted-foreground hover:text-foreground">Cancel</button>
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => { setEditingId(p.id); setEditRating(String(p.rating ?? "")); }}
+                    className={`flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-full hover:opacity-80 transition ${isNew ? "bg-ember/10 text-ember" : "bg-pitch/10 text-pitch"}`}
+                  >
+                    {isNew ? "Rate player" : `Rating: ${p.rating}`}
+                  </button>
+                )}
+                <button
+                  onClick={() => setExpandedId(isExpanded ? null : p.id)}
+                  className="text-xs text-muted-foreground hover:text-pitch transition"
+                >
+                  {isExpanded ? "Collapse" : "Details"}
+                </button>
+                <Link to="/players/$playerId" params={{ playerId: p.slug }} className="text-xs text-muted-foreground hover:text-pitch transition">View</Link>
+                <button onClick={() => deletePlayer(p.id)} className="text-xs text-destructive hover:underline">Delete</button>
+              </div>
+            </div>
+
+            {/* Expanded details */}
+            {isExpanded && (
+              <div className="border-t border-border px-5 py-4 bg-sand/40">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-4">
+                  {(p.stats as { label: string; value: string }[] ?? []).map((s: any) => (
+                    <div key={s.label} className="text-center bg-card rounded-xl p-3 border border-border">
+                      <div className="font-display text-2xl">{s.value}</div>
+                      <div className="text-xs uppercase tracking-widest text-muted-foreground mt-1">{s.label}</div>
+                    </div>
+                  ))}
+                  <div className="text-center bg-card rounded-xl p-3 border border-border">
+                    <div className="font-display text-2xl">{p.age}</div>
+                    <div className="text-xs uppercase tracking-widest text-muted-foreground mt-1">Age</div>
+                  </div>
+                  <div className="text-center bg-card rounded-xl p-3 border border-border">
+                    <div className="font-display text-2xl">#{p.number}</div>
+                    <div className="text-xs uppercase tracking-widest text-muted-foreground mt-1">Jersey</div>
+                  </div>
+                </div>
+                {p.bio && (
+                  <p className="text-sm text-muted-foreground mb-3">{p.bio}</p>
+                )}
+                {(p.video_urls ?? []).length > 0 && (
+                  <div className="flex flex-wrap gap-2 mb-2">
+                    {(p.video_urls as string[]).map((url: string, i: number) => (
+                      <a key={url} href={url} target="_blank" rel="noopener noreferrer" className="text-xs text-pitch hover:underline">
+                        Video {i + 1} →
+                      </a>
+                    ))}
+                  </div>
+                )}
+                {(p.highlights ?? []).length > 0 && (
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    {(p.highlights as string[]).map((h: string) => (
+                      <span key={h} className="text-xs bg-card border border-border px-2 py-1 rounded-full">{h}</span>
+                    ))}
+                  </div>
+                )}
+                <div className="text-xs text-muted-foreground mt-3">
+                  Joined {new Date(p.created_at).toLocaleDateString("en-NG", { day: "numeric", month: "short", year: "numeric" })}
+                </div>
+              </div>
             )}
-            <Link to="/players/$playerId" params={{ playerId: p.slug }} className="text-xs text-muted-foreground hover:text-pitch transition">View</Link>
-            <button onClick={() => deletePlayer(p.id)} className="text-xs text-destructive hover:underline">Delete</button>
           </div>
-        </div>
-      ))}
+        );
+      })}
     </div>
   );
 }

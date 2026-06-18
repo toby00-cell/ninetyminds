@@ -14,56 +14,56 @@ export const Route = createFileRoute("/clubs")({
 
 const clubs = [
   {
-    name: "Lagos Island FC Academy", city: "Lagos", state: "Lagos State", tier: "Tier 1 Academy", scouted: 14, openSpots: 3, founded: 2011,
+    name: "Lagos Island FC Academy", city: "Lagos", state: "Lagos State", tier: "Tier 1 Academy", scouted: 2, openSpots: 3, founded: 2011,
     contact: "scout@lagosislandfc.ng", phone: "+234 801 234 5678", website: "lagosislandfc.ng", coach: "Emmanuel Adeyemi",
     about: "One of Lagos' most respected youth academies, Lagos Island FC has produced players currently active in the NPFL and feeder leagues. Training sessions run six days a week with structured S&C support.",
     positions: ["Goalkeeper", "Centre Back", "Defensive Midfielder"], ageGroups: ["U-15", "U-17", "U-20"],
     trialProcess: "Submit profile via NinetyMinds. Shortlisted players invited for a 3-day trial camp held the first week of every month.",
   },
   {
-    name: "Abuja Queens FC", city: "Abuja", state: "FCT", tier: "Premier Women", scouted: 9, openSpots: 2, founded: 2015,
+    name: "Abuja Queens FC", city: "Abuja", state: "FCT", tier: "Premier Women", scouted: 2, openSpots: 2, founded: 2015,
     contact: "recruitment@abujaqueens.ng", phone: "+234 802 345 6789", website: "abujaqueens.ng", coach: "Fatima Yusuf",
     about: "Abuja Queens FC competes in the NWFL Premier League and has been a consistent pathway for female players from the FCT and surrounding states to reach senior national team level.",
     positions: ["Forward", "Right Back"], ageGroups: ["U-17", "Senior Women"],
     trialProcess: "Open trials held quarterly. Players must have a verified NinetyMinds profile to be considered.",
   },
   {
-    name: "Shooting Stars Youth", city: "Ibadan", state: "Oyo State", tier: "Youth Development", scouted: 21, openSpots: 5, founded: 2008,
+    name: "Shooting Stars Youth", city: "Ibadan", state: "Oyo State", tier: "Youth Development", scouted: 3, openSpots: 5, founded: 2008,
     contact: "youth@shootingstars3sc.ng", phone: "+234 803 456 7890", website: "shootingstars3sc.ng", coach: "Babatunde Okafor",
     about: "The youth arm of one of Nigeria's most storied clubs, 3SC Youth has a pipeline directly to the senior squad.",
     positions: ["Winger", "Striker", "Attacking Midfielder", "Left Back", "Centre Back"], ageGroups: ["U-13", "U-15", "U-17", "U-20"],
     trialProcess: "Walk-in trials every Saturday at the 3SC Training Ground, Adamasingba. Bring boots, kit, and a verified NinetyMinds profile QR code.",
   },
   {
-    name: "Rangers Int'l Feeder", city: "Enugu", state: "Enugu State", tier: "Feeder Club", scouted: 7, openSpots: 1, founded: 2013,
+    name: "Rangers Int'l Feeder", city: "Enugu", state: "Enugu State", tier: "Feeder Club", scouted: 1, openSpots: 1, founded: 2013,
     contact: "feeder@rangersintl.ng", phone: "+234 804 567 8901", website: "rangersintl.ng", coach: "Chukwuemeka Eze",
     about: "Officially affiliated with Rangers International FC, this feeder structure provides a direct pathway to one of the NPFL's most competitive squads.",
     positions: ["Centre Back"], ageGroups: ["U-20", "Reserve"],
     trialProcess: "Invitation only. Scouts identify players through NinetyMinds and local competitions.",
   },
   {
-    name: "Abia Warriors Academy", city: "Aba", state: "Abia State", tier: "Tier 2 Academy", scouted: 12, openSpots: 4, founded: 2016,
+    name: "Abia Warriors Academy", city: "Aba", state: "Abia State", tier: "Tier 2 Academy", scouted: 2, openSpots: 4, founded: 2016,
     contact: "academy@abiawarriors.ng", phone: "+234 805 678 9012", website: "abiawarriors.ng", coach: "Ikenna Obi",
     about: "Based in Aba, Abia Warriors Academy draws from one of Nigeria's most football-dense regions.",
     positions: ["Goalkeeper", "Midfielder", "Winger", "Striker"], ageGroups: ["U-15", "U-17", "U-20"],
     trialProcess: "Monthly open trials. Register via NinetyMinds and bring your profile to the Abia Warriors Training Ground on the first Monday of each month.",
   },
   {
-    name: "Kano Pillarettes", city: "Kano", state: "Kano State", tier: "Premier Women", scouted: 6, openSpots: 2, founded: 2010,
+    name: "Kano Pillarettes", city: "Kano", state: "Kano State", tier: "Premier Women", scouted: 2, openSpots: 2, founded: 2010,
     contact: "recruitment@kanopillarettes.ng", phone: "+234 806 789 0123", website: "kanopillarettes.ng", coach: "Hauwa Ibrahim",
     about: "The women's affiliate of Kano Pillars, Kano Pillarettes competes in the NWFL and serves as the primary development pathway for female footballers across the north.",
     positions: ["Defensive Midfielder", "Centre Back"], ageGroups: ["U-17", "Senior Women"],
     trialProcess: "Trials by appointment. Submit your NinetyMinds profile to the recruitment email.",
   },
   {
-    name: "Rivers Angels U-17", city: "Port Harcourt", state: "Rivers State", tier: "Youth Development", scouted: 18, openSpots: 6, founded: 2007,
+    name: "Rivers Angels U-17", city: "Port Harcourt", state: "Rivers State", tier: "Youth Development", scouted: 3, openSpots: 6, founded: 2007,
     contact: "u17@riversangels.ng", phone: "+234 807 890 1234", website: "riversangels.ng", coach: "Blessing Nwosu",
     about: "The youth structure of Rivers Angels FC, one of the most successful women's clubs in Nigerian football history.",
     positions: ["Goalkeeper", "Left Back", "Right Back", "Winger", "Forward", "Striker"], ageGroups: ["U-15", "U-17"],
     trialProcess: "Open trials quarterly at the Sharks Stadium training pitch. All players must register via NinetyMinds in advance.",
   },
   {
-    name: "Plateau United Reserves", city: "Jos", state: "Plateau State", tier: "Reserve Squad", scouted: 11, openSpots: 3, founded: 2014,
+    name: "Plateau United Reserves", city: "Jos", state: "Plateau State", tier: "Reserve Squad", scouted: 2, openSpots: 3, founded: 2014,
     contact: "reserves@plateauunited.ng", phone: "+234 808 901 2345", website: "plateauunited.ng", coach: "Moses Danladi",
     about: "The reserve setup of Plateau United FC, current NPFL champions. Players train daily alongside the first team.",
     positions: ["Centre Back", "Defensive Midfielder", "Striker"], ageGroups: ["Reserve", "U-20"],
@@ -144,7 +144,7 @@ function ClubsPage() {
         </p>
 
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-14">
-          {[["86","Partner clubs"],["1,284","Players scouted"],["36","States covered"],["94%","Profiles verified"]].map(([v, l]) => (
+          {[["8","Partner clubs"],["11","Players scouted"],["10","States covered"],["94%","Profiles verified"]].map(([v, l]) => (
             <div key={l} className="bg-card border border-border rounded-2xl p-5">
               <div className="font-display text-4xl text-pitch">{v}</div>
               <div className="text-xs uppercase tracking-widest text-muted-foreground mt-1">{l}</div>
