@@ -15,6 +15,7 @@ import { Route as LoginRouteImport } from './routes/login'
 import { Route as LeaderboardRouteImport } from './routes/leaderboard'
 import { Route as HowItWorksRouteImport } from './routes/how-it-works'
 import { Route as FeaturedPlayersRouteImport } from './routes/featured-players'
+import { Route as DashboardMessagesRouteImport } from './routes/dashboard-messages'
 import { Route as CompareRouteImport } from './routes/compare'
 import { Route as ClubsRouteImport } from './routes/clubs'
 import { Route as IndexRouteImport } from './routes/index'
@@ -25,9 +26,11 @@ import { Route as WellnessHubArticleSlugRouteImport } from './routes/wellness-hu
 import { Route as StoriesStoryIdRouteImport } from './routes/stories.$storyId'
 import { Route as RegisterSuccessRouteImport } from './routes/register.success'
 import { Route as RegisterScoutRouteImport } from './routes/register.scout'
+import { Route as RegisterClubRouteImport } from './routes/register.club'
 import { Route as RegisterAthleteRouteImport } from './routes/register.athlete'
 import { Route as PlayersPlayerIdRouteImport } from './routes/players.$playerId'
 import { Route as DashboardAdminRouteImport } from './routes/dashboard.admin'
+import { Route as ClubsClubIdRouteImport } from './routes/clubs.$clubId'
 
 const SearchRoute = SearchRouteImport.update({
   id: '/search',
@@ -57,6 +60,11 @@ const HowItWorksRoute = HowItWorksRouteImport.update({
 const FeaturedPlayersRoute = FeaturedPlayersRouteImport.update({
   id: '/featured-players',
   path: '/featured-players',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DashboardMessagesRoute = DashboardMessagesRouteImport.update({
+  id: '/dashboard-messages',
+  path: '/dashboard-messages',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CompareRoute = CompareRouteImport.update({
@@ -109,6 +117,11 @@ const RegisterScoutRoute = RegisterScoutRouteImport.update({
   path: '/register/scout',
   getParentRoute: () => rootRouteImport,
 } as any)
+const RegisterClubRoute = RegisterClubRouteImport.update({
+  id: '/register/club',
+  path: '/register/club',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const RegisterAthleteRoute = RegisterAthleteRouteImport.update({
   id: '/register/athlete',
   path: '/register/athlete',
@@ -124,20 +137,28 @@ const DashboardAdminRoute = DashboardAdminRouteImport.update({
   path: '/dashboard/admin',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ClubsClubIdRoute = ClubsClubIdRouteImport.update({
+  id: '/$clubId',
+  path: '/$clubId',
+  getParentRoute: () => ClubsRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/clubs': typeof ClubsRoute
+  '/clubs': typeof ClubsRouteWithChildren
   '/compare': typeof CompareRoute
+  '/dashboard-messages': typeof DashboardMessagesRoute
   '/featured-players': typeof FeaturedPlayersRoute
   '/how-it-works': typeof HowItWorksRoute
   '/leaderboard': typeof LeaderboardRoute
   '/login': typeof LoginRoute
   '/map': typeof MapRoute
   '/search': typeof SearchRoute
+  '/clubs/$clubId': typeof ClubsClubIdRoute
   '/dashboard/admin': typeof DashboardAdminRoute
   '/players/$playerId': typeof PlayersPlayerIdRoute
   '/register/athlete': typeof RegisterAthleteRoute
+  '/register/club': typeof RegisterClubRoute
   '/register/scout': typeof RegisterScoutRoute
   '/register/success': typeof RegisterSuccessRoute
   '/stories/$storyId': typeof StoriesStoryIdRoute
@@ -148,17 +169,20 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/clubs': typeof ClubsRoute
+  '/clubs': typeof ClubsRouteWithChildren
   '/compare': typeof CompareRoute
+  '/dashboard-messages': typeof DashboardMessagesRoute
   '/featured-players': typeof FeaturedPlayersRoute
   '/how-it-works': typeof HowItWorksRoute
   '/leaderboard': typeof LeaderboardRoute
   '/login': typeof LoginRoute
   '/map': typeof MapRoute
   '/search': typeof SearchRoute
+  '/clubs/$clubId': typeof ClubsClubIdRoute
   '/dashboard/admin': typeof DashboardAdminRoute
   '/players/$playerId': typeof PlayersPlayerIdRoute
   '/register/athlete': typeof RegisterAthleteRoute
+  '/register/club': typeof RegisterClubRoute
   '/register/scout': typeof RegisterScoutRoute
   '/register/success': typeof RegisterSuccessRoute
   '/stories/$storyId': typeof StoriesStoryIdRoute
@@ -170,17 +194,20 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/clubs': typeof ClubsRoute
+  '/clubs': typeof ClubsRouteWithChildren
   '/compare': typeof CompareRoute
+  '/dashboard-messages': typeof DashboardMessagesRoute
   '/featured-players': typeof FeaturedPlayersRoute
   '/how-it-works': typeof HowItWorksRoute
   '/leaderboard': typeof LeaderboardRoute
   '/login': typeof LoginRoute
   '/map': typeof MapRoute
   '/search': typeof SearchRoute
+  '/clubs/$clubId': typeof ClubsClubIdRoute
   '/dashboard/admin': typeof DashboardAdminRoute
   '/players/$playerId': typeof PlayersPlayerIdRoute
   '/register/athlete': typeof RegisterAthleteRoute
+  '/register/club': typeof RegisterClubRoute
   '/register/scout': typeof RegisterScoutRoute
   '/register/success': typeof RegisterSuccessRoute
   '/stories/$storyId': typeof StoriesStoryIdRoute
@@ -195,15 +222,18 @@ export interface FileRouteTypes {
     | '/'
     | '/clubs'
     | '/compare'
+    | '/dashboard-messages'
     | '/featured-players'
     | '/how-it-works'
     | '/leaderboard'
     | '/login'
     | '/map'
     | '/search'
+    | '/clubs/$clubId'
     | '/dashboard/admin'
     | '/players/$playerId'
     | '/register/athlete'
+    | '/register/club'
     | '/register/scout'
     | '/register/success'
     | '/stories/$storyId'
@@ -216,15 +246,18 @@ export interface FileRouteTypes {
     | '/'
     | '/clubs'
     | '/compare'
+    | '/dashboard-messages'
     | '/featured-players'
     | '/how-it-works'
     | '/leaderboard'
     | '/login'
     | '/map'
     | '/search'
+    | '/clubs/$clubId'
     | '/dashboard/admin'
     | '/players/$playerId'
     | '/register/athlete'
+    | '/register/club'
     | '/register/scout'
     | '/register/success'
     | '/stories/$storyId'
@@ -237,15 +270,18 @@ export interface FileRouteTypes {
     | '/'
     | '/clubs'
     | '/compare'
+    | '/dashboard-messages'
     | '/featured-players'
     | '/how-it-works'
     | '/leaderboard'
     | '/login'
     | '/map'
     | '/search'
+    | '/clubs/$clubId'
     | '/dashboard/admin'
     | '/players/$playerId'
     | '/register/athlete'
+    | '/register/club'
     | '/register/scout'
     | '/register/success'
     | '/stories/$storyId'
@@ -257,8 +293,9 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  ClubsRoute: typeof ClubsRoute
+  ClubsRoute: typeof ClubsRouteWithChildren
   CompareRoute: typeof CompareRoute
+  DashboardMessagesRoute: typeof DashboardMessagesRoute
   FeaturedPlayersRoute: typeof FeaturedPlayersRoute
   HowItWorksRoute: typeof HowItWorksRoute
   LeaderboardRoute: typeof LeaderboardRoute
@@ -268,6 +305,7 @@ export interface RootRouteChildren {
   DashboardAdminRoute: typeof DashboardAdminRoute
   PlayersPlayerIdRoute: typeof PlayersPlayerIdRoute
   RegisterAthleteRoute: typeof RegisterAthleteRoute
+  RegisterClubRoute: typeof RegisterClubRoute
   RegisterScoutRoute: typeof RegisterScoutRoute
   RegisterSuccessRoute: typeof RegisterSuccessRoute
   StoriesStoryIdRoute: typeof StoriesStoryIdRoute
@@ -319,6 +357,13 @@ declare module '@tanstack/react-router' {
       path: '/featured-players'
       fullPath: '/featured-players'
       preLoaderRoute: typeof FeaturedPlayersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/dashboard-messages': {
+      id: '/dashboard-messages'
+      path: '/dashboard-messages'
+      fullPath: '/dashboard-messages'
+      preLoaderRoute: typeof DashboardMessagesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/compare': {
@@ -391,6 +436,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof RegisterScoutRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/register/club': {
+      id: '/register/club'
+      path: '/register/club'
+      fullPath: '/register/club'
+      preLoaderRoute: typeof RegisterClubRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/register/athlete': {
       id: '/register/athlete'
       path: '/register/athlete'
@@ -412,13 +464,31 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardAdminRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/clubs/$clubId': {
+      id: '/clubs/$clubId'
+      path: '/$clubId'
+      fullPath: '/clubs/$clubId'
+      preLoaderRoute: typeof ClubsClubIdRouteImport
+      parentRoute: typeof ClubsRoute
+    }
   }
 }
 
+interface ClubsRouteChildren {
+  ClubsClubIdRoute: typeof ClubsClubIdRoute
+}
+
+const ClubsRouteChildren: ClubsRouteChildren = {
+  ClubsClubIdRoute: ClubsClubIdRoute,
+}
+
+const ClubsRouteWithChildren = ClubsRoute._addFileChildren(ClubsRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  ClubsRoute: ClubsRoute,
+  ClubsRoute: ClubsRouteWithChildren,
   CompareRoute: CompareRoute,
+  DashboardMessagesRoute: DashboardMessagesRoute,
   FeaturedPlayersRoute: FeaturedPlayersRoute,
   HowItWorksRoute: HowItWorksRoute,
   LeaderboardRoute: LeaderboardRoute,
@@ -428,6 +498,7 @@ const rootRouteChildren: RootRouteChildren = {
   DashboardAdminRoute: DashboardAdminRoute,
   PlayersPlayerIdRoute: PlayersPlayerIdRoute,
   RegisterAthleteRoute: RegisterAthleteRoute,
+  RegisterClubRoute: RegisterClubRoute,
   RegisterScoutRoute: RegisterScoutRoute,
   RegisterSuccessRoute: RegisterSuccessRoute,
   StoriesStoryIdRoute: StoriesStoryIdRoute,

@@ -92,7 +92,7 @@ function SaveButton({ slug }: { slug: string }) {
 function ScoutContactForm({ playerSlug, playerName }: { playerSlug: string; playerName: string }) {
   const [open, setOpen] = useState(false);
   const [checkingAuth, setCheckingAuth] = useState(true);
-  const [scout, setScout] = useState<{ id: string; name: string; organisation: string } | null>(null);
+  const [scout, setScout] = useState<{ id: string; name: string; organisation: string; verified: boolean } | null>(null);
   const [form, setForm] = useState({ subject: "", body: "" });
   const [sending, setSending] = useState(false);
   const [sent, setSent] = useState(false);
@@ -103,8 +103,8 @@ function ScoutContactForm({ playerSlug, playerName }: { playerSlug: string; play
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) { setCheckingAuth(false); return; }
       const { data: scoutProfile } = await (supabase as any)
-        .from("scouts").select("name,organisation").eq("user_id", user.id).single();
-      if (scoutProfile) setScout({ id: user.id, name: scoutProfile.name, organisation: scoutProfile.organisation });
+        .from("scouts").select("name,organisation,verified").eq("user_id", user.id).single();
+      if (scoutProfile) setScout({ id: user.id, name: scoutProfile.name, organisation: scoutProfile.organisation, verified: scoutProfile.verified });
       setCheckingAuth(false);
     }
     loadScout();
@@ -152,7 +152,10 @@ function ScoutContactForm({ playerSlug, playerName }: { playerSlug: string; play
         <button onClick={() => setOpen(true)} className="w-full py-3 rounded-xl bg-ember text-cream text-sm font-medium hover:opacity-90 transition">Contact this player →</button>
       ) : (
         <div className="space-y-3">
-          <div className="text-xs text-cream/50">Sending as {scout.name} · {scout.organisation}</div>
+          <div className="text-xs text-cream/50 flex items-center gap-1.5">
+            Sending as {scout.name} · {scout.organisation}
+            {scout.verified && <span className="px-1.5 py-0.5 rounded-full bg-pitch/20 text-pitch text-[10px] font-medium">✓ Verified</span>}
+          </div>
           <input value={form.subject} onChange={(e) => set("subject", e.target.value)} placeholder="Subject" className="w-full px-3 py-2.5 rounded-xl border border-cream/20 bg-cream/5 text-cream text-sm placeholder:text-cream/40 focus:outline-none focus:ring-2 focus:ring-ember" />
           <textarea value={form.body} onChange={(e) => set("body", e.target.value)} rows={3} placeholder="Your message..." className="w-full px-3 py-2.5 rounded-xl border border-cream/20 bg-cream/5 text-cream text-sm placeholder:text-cream/40 focus:outline-none focus:ring-2 focus:ring-ember resize-none" />
           {error && <p className="text-xs text-red-400">{error}</p>}

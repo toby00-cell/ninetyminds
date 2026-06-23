@@ -36,7 +36,7 @@ function SearchPage() {
         .or(`name.ilike.%${q}%,pos.ilike.%${q}%,city.ilike.%${q}%,club.ilike.%${q}%`),
       (supabase as any).from("stories").select("slug,title,excerpt,tag,read_time,author_name")
         .or(`title.ilike.%${q}%,excerpt.ilike.%${q}%,tag.ilike.%${q}%`),
-      (supabase as any).from("scouts").select("user_id,name,organisation,role")
+      (supabase as any).from("scouts").select("user_id,name,organisation,role,verified")
         .or(`name.ilike.%${q}%,organisation.ilike.%${q}%,role.ilike.%${q}%`),
     ]);
 
@@ -115,7 +115,10 @@ function SearchPage() {
                     {s.name.charAt(0)}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="font-display text-lg">{s.name}</div>
+                    <div className="font-display text-lg flex items-center gap-2">
+                      {s.name}
+                      {s.verified && <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-pitch/10 text-pitch">✓ Verified</span>}
+                    </div>
                     <div className="text-sm text-muted-foreground">{s.role} · {s.organisation}</div>
                   </div>
                 </div>
