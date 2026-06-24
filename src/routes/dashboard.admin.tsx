@@ -9,8 +9,7 @@ export const Route = createFileRoute("/dashboard/admin")({
   component: AdminDashboard,
 });
 
-const ADMIN_EMAIL = "brightjoel196@gmail.com";
-type Tab = "stats" | "players" | "scouts" | "stories" | "applications";
+type Tab = "stats" | "players" | "scouts" | "clubs" | "verification" | "stories" | "applications";
 
 function AdminDashboard() {
   const navigate = useNavigate();
@@ -21,7 +20,11 @@ function AdminDashboard() {
   useEffect(() => {
     async function check() {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user || user.email !== ADMIN_EMAIL) { navigate({ to: "/login" }); return; }
+      if (!user) { navigate({ to: "/login" }); return; }
+      // Real, server-enforced admin check — replaces the old email === ADMIN_EMAIL
+      // comparison, which could be spoofed since it only ran in the browser.
+      const { data: adminRow } = await (supabase as any).from("admins").select("user_id").eq("user_id", user.id).maybeSingle();
+      if (!adminRow) { navigate({ to: "/login" }); return; }
       setAuthorized(true);
       setLoading(false);
     }
@@ -47,7 +50,7 @@ function AdminDashboard() {
         </div>
 
         <div className="flex gap-1 bg-sand rounded-xl p-1 mb-8 w-fit overflow-x-auto">
-          {(["stats", "players", "scouts", "stories", "applications"] as Tab[]).map((t) => (
+          {(["stats", "players", "scouts", "clubs", "verification", "stories", "applications"] as Tab[]).map((t) => (
             <button key={t} onClick={() => setTab(t)}
               className={`px-4 py-2 rounded-lg text-sm font-medium capitalize transition-colors whitespace-nowrap ${tab === t ? "bg-card shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground"}`}>
               {t}
@@ -58,6 +61,8 @@ function AdminDashboard() {
         {tab === "stats" && <StatsTab />}
         {tab === "players" && <PlayersTab />}
         {tab === "scouts" && <ScoutsTab />}
+        {tab === "clubs" && <ClubsTab />}
+        {tab === "verification" && <VerificationTab />}
         {tab === "stories" && <StoriesTab />}
         {tab === "applications" && <ApplicationsTab />}
       </div>
@@ -66,28 +71,37 @@ function AdminDashboard() {
 }
 
 function StatsTab() {
-  const [stats, setStats] = useState({ players: 0, scouts: 0, stories: 0, verified: 0, applications: 0, messages: 0 });
+  const [stats, setStats] = useState({ players: 0, scouts: 0, clubs: 0, stories: 0, verified: 0, applications: 0, messages: 0, pendingVerification: 0 });
 
   useEffect(() => {
     async function load() {
-      const [{ count: players }, { count: scouts }, { count: stories }, { count: verified }, { count: applications }, { count: messages }] = await Promise.all([
+      const [{ count: players }, { count: scouts }, { count: clubs }, { count: stories }, { count: verified }, { count: applications }, { count: messages }, { count: pendingVerification }] = await Promise.all([
         (supabase as any).from("players").select("*", { count: "exact", head: true }),
         (supabase as any).from("scouts").select("*", { count: "exact", head: true }),
+        (supabase as any).from("clubs").select("*", { count: "exact", head: true }),
         (supabase as any).from("stories").select("*", { count: "exact", head: true }),
         (supabase as any).from("players").select("*", { count: "exact", head: true }).not("img_url", "is", null),
         (supabase as any).from("applications").select("*", { count: "exact", head: true }),
         (supabase as any).from("messages").select("*", { count: "exact", head: true }),
+        (supabase as any).from("scouts").select("*", { count: "exact", head: true }).eq("verification_status", "pending"),
       ]);
-      setStats({ players: players ?? 0, scouts: scouts ?? 0, stories: stories ?? 0, verified: verified ?? 0, applications: applications ?? 0, messages: messages ?? 0 });
+      const { count: pendingClubVerification } = await (supabase as any).from("clubs").select("*", { count: "exact", head: true }).eq("verification_status", "pending");
+      setStats({
+        players: players ?? 0, scouts: scouts ?? 0, clubs: clubs ?? 0, stories: stories ?? 0,
+        verified: verified ?? 0, applications: applications ?? 0, messages: messages ?? 0,
+        pendingVerification: (pendingVerification ?? 0) + (pendingClubVerification ?? 0),
+      });
     }
     load();
   }, []);
 
   return (
-    <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
+    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
       {[
         { label: "Total Players", value: stats.players, color: "text-pitch" },
         { label: "Total Scouts", value: stats.scouts, color: "text-ember" },
+        { label: "Total Clubs", value: stats.clubs, color: "text-ember" },
+        { label: "Pending Verifications", value: stats.pendingVerification, color: stats.pendingVerification > 0 ? "text-destructive" : "text-muted-foreground" },
         { label: "Stories Published", value: stats.stories, color: "text-pitch" },
         { label: "Players with Photos", value: stats.verified, color: "text-green-600" },
         { label: "Trial Applications", value: stats.applications, color: "text-ember" },
@@ -152,7 +166,6 @@ function PlayersTab() {
         const isExpanded = expandedId === p.id;
         return (
           <div key={p.id} className={`bg-card border rounded-2xl overflow-hidden transition-all ${isNew ? "border-ember/40" : "border-border"}`}>
-            {/* Main row */}
             <div className="p-5 flex items-center gap-4">
               <div className="w-12 h-12 rounded-xl bg-sand border border-border overflow-hidden shrink-0">
                 {p.img_url
@@ -200,7 +213,6 @@ function PlayersTab() {
               </div>
             </div>
 
-            {/* Expanded details */}
             {isExpanded && (
               <div className="border-t border-border px-5 py-4 bg-sand/40">
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-4">
@@ -278,13 +290,193 @@ function ScoutsTab() {
         <div key={s.id} className="bg-card border border-border rounded-2xl p-5 flex items-center gap-4">
           <div className="w-10 h-10 rounded-full bg-ember/10 text-ember flex items-center justify-center font-display text-lg shrink-0">{s.name.charAt(0)}</div>
           <div className="flex-1 min-w-0">
-            <div className="font-medium">{s.name}</div>
+            <div className="flex items-center gap-2">
+              <div className="font-medium">{s.name}</div>
+              {s.verified && <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-pitch text-cream">✓ Verified</span>}
+            </div>
             <div className="text-sm text-muted-foreground">{s.role} · {s.organisation}</div>
           </div>
           <button onClick={() => deleteScout(s.id)} className="text-xs text-destructive hover:underline shrink-0">Delete</button>
         </div>
       ))}
       {scouts.length === 0 && <div className="text-sm text-muted-foreground">No scouts registered yet.</div>}
+    </div>
+  );
+}
+
+function ClubsTab() {
+  const [clubs, setClubs] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function load() {
+      const { data } = await (supabase as any).from("clubs").select("*").order("created_at", { ascending: false });
+      setClubs(data ?? []);
+      setLoading(false);
+    }
+    load();
+  }, []);
+
+  async function deleteClub(id: number) {
+    if (!confirm("Delete this club account? This also clears it from any players' verified roster.")) return;
+    await (supabase as any).from("clubs").delete().eq("id", id);
+    setClubs((prev) => prev.filter((c) => c.id !== id));
+  }
+
+  if (loading) return <div className="text-sm text-muted-foreground">Loading clubs...</div>;
+
+  return (
+    <div className="space-y-3">
+      <div className="text-sm text-muted-foreground mb-4">{clubs.length} clubs registered</div>
+      {clubs.map((c) => (
+        <div key={c.id} className="bg-card border border-border rounded-2xl p-5 flex items-center gap-4">
+          <div className="w-10 h-10 rounded-full bg-pitch/10 text-pitch flex items-center justify-center font-display text-lg shrink-0">{c.name.charAt(0)}</div>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2">
+              <div className="font-medium">{c.name}</div>
+              {c.verified && <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-pitch text-cream">✓ Verified</span>}
+            </div>
+            <div className="text-sm text-muted-foreground">{c.location}</div>
+          </div>
+          <div className="flex items-center gap-3 shrink-0">
+            <Link to="/clubs/$clubId" params={{ clubId: c.slug }} className="text-xs text-muted-foreground hover:text-pitch transition">View</Link>
+            <button onClick={() => deleteClub(c.id)} className="text-xs text-destructive hover:underline">Delete</button>
+          </div>
+        </div>
+      ))}
+      {clubs.length === 0 && <div className="text-sm text-muted-foreground">No clubs registered yet.</div>}
+    </div>
+  );
+}
+
+function VerificationTab() {
+  const [items, setItems] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [rejectingKey, setRejectingKey] = useState<string | null>(null);
+  const [rejectNote, setRejectNote] = useState("");
+  const [updating, setUpdating] = useState<Record<string, boolean>>({});
+
+  async function load() {
+    const [{ data: scouts }, { data: clubs }] = await Promise.all([
+      (supabase as any).from("scouts")
+        .select("id,name,organisation,role,verification_status,verification_document_url,verification_notes,verification_submitted_at")
+        .neq("verification_status", "unverified"),
+      (supabase as any).from("clubs")
+        .select("id,name,location,slug,verification_status,verification_document_url,verification_notes,verification_submitted_at")
+        .neq("verification_status", "unverified"),
+    ]);
+
+    const combined = [
+      ...(scouts ?? []).map((s: any) => ({ ...s, type: "scout" as const, subtitle: `${s.role} · ${s.organisation}` })),
+      ...(clubs ?? []).map((c: any) => ({ ...c, type: "club" as const, subtitle: c.location })),
+    ].sort((a, b) => {
+      if (a.verification_status === "pending" && b.verification_status !== "pending") return -1;
+      if (b.verification_status === "pending" && a.verification_status !== "pending") return 1;
+      return new Date(b.verification_submitted_at ?? 0).getTime() - new Date(a.verification_submitted_at ?? 0).getTime();
+    });
+
+    setItems(combined);
+    setLoading(false);
+  }
+
+  useEffect(() => { load(); }, []);
+
+  async function viewDocument(item: any) {
+    if (!item.verification_document_url) return;
+    const { data, error } = await supabase.storage.from("verification-docs").createSignedUrl(item.verification_document_url, 300);
+    if (data?.signedUrl) window.open(data.signedUrl, "_blank");
+    else alert("Couldn't load document.");
+  }
+
+  async function approve(item: any) {
+    const key = `${item.type}-${item.id}`;
+    setUpdating((u) => ({ ...u, [key]: true }));
+    const table = item.type === "scout" ? "scouts" : "clubs";
+    await (supabase as any).from(table).update({ verification_status: "verified", verification_notes: null }).eq("id", item.id);
+    setItems((prev) => prev.map((i) => (i.type === item.type && i.id === item.id) ? { ...i, verification_status: "verified", verification_notes: null } : i));
+    setUpdating((u) => ({ ...u, [key]: false }));
+  }
+
+  async function reject(item: any) {
+    if (!rejectNote.trim()) return;
+    const key = `${item.type}-${item.id}`;
+    setUpdating((u) => ({ ...u, [key]: true }));
+    const table = item.type === "scout" ? "scouts" : "clubs";
+    await (supabase as any).from(table).update({ verification_status: "rejected", verification_notes: rejectNote.trim() }).eq("id", item.id);
+    setItems((prev) => prev.map((i) => (i.type === item.type && i.id === item.id) ? { ...i, verification_status: "rejected", verification_notes: rejectNote.trim() } : i));
+    setRejectingKey(null);
+    setRejectNote("");
+    setUpdating((u) => ({ ...u, [key]: false }));
+  }
+
+  const statusColor: Record<string, string> = {
+    pending: "bg-yellow-50 text-yellow-700",
+    verified: "bg-green-50 text-green-700",
+    rejected: "bg-red-50 text-red-700",
+  };
+
+  if (loading) return <div className="text-sm text-muted-foreground">Loading verification queue...</div>;
+
+  const pendingCount = items.filter((i) => i.verification_status === "pending").length;
+
+  return (
+    <div className="space-y-3">
+      <div className="flex items-center gap-3 mb-4">
+        <div className="text-sm text-muted-foreground">{items.length} submissions</div>
+        {pendingCount > 0 && <div className="text-xs font-medium bg-ember/10 text-ember px-2.5 py-1 rounded-full">{pendingCount} pending review</div>}
+      </div>
+
+      {items.map((item) => {
+        const key = `${item.type}-${item.id}`;
+        return (
+          <div key={key} className="bg-card border border-border rounded-2xl p-5">
+            <div className="flex items-center gap-4">
+              <div className="w-10 h-10 rounded-full bg-pitch/10 text-pitch flex items-center justify-center font-display text-lg shrink-0">{item.name.charAt(0)}</div>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2">
+                  <div className="font-medium">{item.name}</div>
+                  <span className="text-[10px] font-bold uppercase tracking-wider bg-sand px-2 py-0.5 rounded-full">{item.type}</span>
+                </div>
+                <div className="text-sm text-muted-foreground">{item.subtitle}</div>
+                {item.verification_submitted_at && (
+                  <div className="text-xs text-muted-foreground mt-0.5">
+                    Submitted {new Date(item.verification_submitted_at).toLocaleDateString("en-NG", { day: "numeric", month: "short", year: "numeric" })}
+                  </div>
+                )}
+              </div>
+              <div className="flex items-center gap-2 shrink-0">
+                <span className={`text-xs font-medium px-2.5 py-1 rounded-full capitalize ${statusColor[item.verification_status] ?? "bg-sand text-muted-foreground"}`}>{item.verification_status}</span>
+                {item.verification_document_url && (
+                  <button onClick={() => viewDocument(item)} className="text-xs font-medium text-pitch hover:underline">View doc</button>
+                )}
+                {item.verification_status === "pending" && (
+                  <>
+                    <button onClick={() => approve(item)} disabled={updating[key]} className="text-xs font-medium text-pitch hover:underline disabled:opacity-60">Approve</button>
+                    <button onClick={() => setRejectingKey(rejectingKey === key ? null : key)} className="text-xs font-medium text-destructive hover:underline">Reject</button>
+                  </>
+                )}
+              </div>
+            </div>
+
+            {item.verification_status === "rejected" && item.verification_notes && (
+              <div className="mt-3 text-xs text-muted-foreground bg-sand/50 rounded-lg px-3 py-2">Reason given: {item.verification_notes}</div>
+            )}
+
+            {rejectingKey === key && (
+              <div className="mt-3 flex gap-2">
+                <input
+                  value={rejectNote}
+                  onChange={(e) => setRejectNote(e.target.value)}
+                  placeholder="Reason for rejection (shown to them)"
+                  className="flex-1 px-3 py-2 rounded-xl border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-pitch"
+                />
+                <button onClick={() => reject(item)} disabled={updating[key] || !rejectNote.trim()} className="px-4 py-2 rounded-xl bg-destructive text-cream text-sm font-medium disabled:opacity-60">Confirm</button>
+              </div>
+            )}
+          </div>
+        );
+      })}
+      {items.length === 0 && <div className="text-sm text-muted-foreground">No verification submissions yet.</div>}
     </div>
   );
 }
