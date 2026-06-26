@@ -1,5 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { createClient } from "@supabase/supabase-js";
+import { z } from "zod";
 import { Resend } from "resend";
 
 // Service-role client — this must NEVER be imported into client-side code.
@@ -12,17 +13,17 @@ const supabaseAdmin = createClient(
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
-type VerificationEmailInput = {
-  userId: string;
-  name: string;
-  accountType: "scout" | "club";
-  status: "verified" | "rejected";
-  reason?: string;
-};
+const verificationEmailSchema = z.object({
+  userId: z.string().uuid(),
+  name: z.string().min(1).max(200),
+  accountType: z.enum(["scout", "club"]),
+  status: z.enum(["verified", "rejected"]),
+  reason: z.string().max(1000).optional(),
+});
 
-export const sendVerificationEmail = createServerFn({ method: "POST" }).handler(
-  async (ctx: any) => {
-    const data = ctx.data as VerificationEmailInput;
+export const sendVerificationEmail = createServerFn({ method: "POST" })
+  .validator((data: unknown) => verificationEmailSchema.parse(data))
+  .handler(async ({ data }) => {
     // scouts/clubs tables don't store email — it lives in Supabase Auth.
     // Only the service role can look up another user's email like this.
     const { data: userData, error: userError } = await supabaseAdmin.auth.admin.getUserById(data.userId);
