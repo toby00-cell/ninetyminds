@@ -1,6 +1,7 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase-browser";
+import { sendVerificationEmail } from "@/lib/api/verification.functions";
 
 export const Route = createFileRoute("/dashboard/admin")({
   head: () => ({
@@ -359,10 +360,10 @@ function VerificationTab() {
   async function load() {
     const [{ data: scouts }, { data: clubs }] = await Promise.all([
       (supabase as any).from("scouts")
-        .select("id,name,organisation,role,verification_status,verification_document_url,verification_notes,verification_submitted_at")
+        .select("id,user_id,name,organisation,role,verification_status,verification_document_url,verification_notes,verification_submitted_at")
         .neq("verification_status", "unverified"),
       (supabase as any).from("clubs")
-        .select("id,name,location,slug,verification_status,verification_document_url,verification_notes,verification_submitted_at")
+        .select("id,user_id,name,location,slug,verification_status,verification_document_url,verification_notes,verification_submitted_at")
         .neq("verification_status", "unverified"),
     ]);
 
@@ -394,6 +395,8 @@ function VerificationTab() {
     const table = item.type === "scout" ? "scouts" : "clubs";
     await (supabase as any).from(table).update({ verification_status: "verified", verification_notes: null }).eq("id", item.id);
     setItems((prev) => prev.map((i) => (i.type === item.type && i.id === item.id) ? { ...i, verification_status: "verified", verification_notes: null } : i));
+    (sendVerificationEmail as any)({ data: { userId: item.user_id, name: item.name, accountType: item.type, status: "verified" } })
+      .catch((err: any) => console.error("Verification email failed to send:", err));
     setUpdating((u) => ({ ...u, [key]: false }));
   }
 
@@ -402,8 +405,11 @@ function VerificationTab() {
     const key = `${item.type}-${item.id}`;
     setUpdating((u) => ({ ...u, [key]: true }));
     const table = item.type === "scout" ? "scouts" : "clubs";
-    await (supabase as any).from(table).update({ verification_status: "rejected", verification_notes: rejectNote.trim() }).eq("id", item.id);
-    setItems((prev) => prev.map((i) => (i.type === item.type && i.id === item.id) ? { ...i, verification_status: "rejected", verification_notes: rejectNote.trim() } : i));
+    const reason = rejectNote.trim();
+    await (supabase as any).from(table).update({ verification_status: "rejected", verification_notes: reason }).eq("id", item.id);
+    setItems((prev) => prev.map((i) => (i.type === item.type && i.id === item.id) ? { ...i, verification_status: "rejected", verification_notes: reason } : i));
+    (sendVerificationEmail as any)({ data: { userId: item.user_id, name: item.name, accountType: item.type, status: "rejected", reason } })
+      .catch((err: any) => console.error("Verification email failed to send:", err));
     setRejectingKey(null);
     setRejectNote("");
     setUpdating((u) => ({ ...u, [key]: false }));

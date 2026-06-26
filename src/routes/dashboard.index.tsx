@@ -378,8 +378,8 @@ function ClubProfileEditor({ profile, onUpdate }: { profile: any; onUpdate: (upd
       contact_email: form.contact_email || null,
       contact_phone: form.contact_phone || null,
       website: form.website || null,
-      positions_needed: form.positions_needed.split(",").map((s) => s.trim()).filter(Boolean),
-      age_groups: form.age_groups.split(",").map((s) => s.trim()).filter(Boolean),
+      positions_needed: form.positions_needed.split(",").map((s: string) => s.trim()).filter(Boolean),
+      age_groups: form.age_groups.split(",").map((s: string) => s.trim()).filter(Boolean),
       trial_process: form.trial_process || null,
       open_trial_spots: form.open_trial_spots ? parseInt(form.open_trial_spots) : null,
     };
@@ -864,6 +864,7 @@ function Dashboard() {
   }
 
   async function removeVideoUrl(url: string) {
+    if (!user) return;
     const updated = (profile.video_urls ?? []).filter((v: string) => v !== url);
     await (supabase as any).from("players").update({ video_urls: updated }).eq("user_id", user.id);
     setProfile((p: any) => ({ ...p, video_urls: updated }));
