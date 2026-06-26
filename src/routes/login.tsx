@@ -1,6 +1,8 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { supabase } from "@/lib/supabase-browser";
+import { serverLogin } from "@/lib/api/auth.functions";
+import { PasswordInput } from "@/components/PasswordInput";
 
 export const Route = createFileRoute("/login")({
   head: () => ({
@@ -24,14 +26,17 @@ function Login() {
     if (!form.email || !form.password) return setError("Please fill in all fields.");
     setLoading(true);
     setError(null);
-
     try {
-      const { error: signInError } = await supabase.auth.signInWithPassword({
-        email: form.email,
-        password: form.password,
-      });
+      // All format/length validation, sanitization, and the actual auth
+      // check now happen server-side in serverLogin — this call can't be
+      // bypassed by disabling JS or hitting the API directly with bad input.
+      const result = await serverLogin({ data: { email: form.email, password: form.password } });
 
-      if (signInError) throw new Error(signInError.message);
+      const { error: sessionError } = await supabase.auth.setSession({
+        access_token: result.access_token,
+        refresh_token: result.refresh_token,
+      });
+      if (sessionError) throw new Error(sessionError.message);
 
       navigate({ to: "/dashboard" });
     } catch (err: any) {
@@ -52,7 +57,6 @@ function Login() {
           <h1 className="font-display text-3xl mb-2">Welcome back.</h1>
           <p className="text-muted-foreground text-sm">Sign in to your account.</p>
         </div>
-
         <div className="bg-card border border-border rounded-2xl p-8 space-y-5">
           <div>
             <label className="block text-sm font-medium mb-1.5">Email address</label>
@@ -66,19 +70,18 @@ function Login() {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1.5">Password</label>
-            <input
-              type="password"
+            <div className="flex items-center justify-between mb-1.5">
+              <label className="block text-sm font-medium">Password</label>
+              <Link to="/forgot-password" className="text-xs text-pitch hover:underline">Forgot password?</Link>
+            </div>
+            <PasswordInput
               value={form.password}
-              onChange={(e) => set("password", e.target.value)}
+              onChange={(v) => set("password", v)}
               onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
               placeholder="Your password"
-              className="w-full px-4 py-3 rounded-xl border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-pitch"
             />
           </div>
-
           {error && <p className="text-sm text-destructive">{error}</p>}
-
           <button
             onClick={handleSubmit}
             disabled={loading}
@@ -86,13 +89,17 @@ function Login() {
           >
             {loading ? "Signing in..." : "Sign in →"}
           </button>
-
           <div className="flex items-center justify-between text-sm text-muted-foreground pt-1">
             <Link to="/register/athlete" className="text-pitch hover:underline">
               Create athlete profile
             </Link>
             <Link to="/register/scout" className="text-pitch hover:underline">
               Join as a scout
+            </Link>
+          </div>
+          <div className="text-center text-sm text-muted-foreground">
+            <Link to="/register/club" className="text-pitch hover:underline">
+              Register your club
             </Link>
           </div>
         </div>

@@ -1,6 +1,8 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useRef, useState } from "react";
 import { supabase } from "@/lib/supabase-browser";
+import { serverSignUpScout } from "@/lib/api/auth.functions";
+import { PasswordInput } from "@/components/PasswordInput";
 
 export const Route = createFileRoute("/register/scout")({
   head: () => ({
@@ -18,7 +20,7 @@ function ScoutRegister() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const submittingRef = useRef(false); // guards against double-click firing two submits before re-render
+  const submittingRef = useRef(false);
 
   const [form, setForm] = useState({
     email: "",
@@ -48,47 +50,22 @@ function ScoutRegister() {
     setError(null);
 
     try {
-      // 1. Create auth user
-      const { data: authData, error: authError } = await supabase.auth.signUp({
-        email: form.email,
-        password: form.password,
-        options: {
-          data: { role: "scout", name: form.name },
-        },
-      });
+      // serverSignUpScout validates, sanitizes, creates the auth user, and
+      // inserts the scouts row all server-side with the service role — so
+      // there's no race condition with email confirmation, and no way to
+      // bypass validation by skipping the client-side checks above.
+      const result = await serverSignUpScout({ data: form });
 
-      if (authError) throw new Error(authError.message);
-
-      const user = authData.user;
-      if (!user) throw new Error("Signup failed — no user returned.");
-      const userId = user.id;
-
-      // Supabase doesn't error when the email already belongs to an existing
-      // account — it silently returns that existing user's id with an empty
-      // `identities` array. Catch that here, before we try to write a second
-      // scouts row for the same user_id (which is what was throwing the
-      // "duplicate key value violates unique constraint scouts_user_id_key" error).
-      if (user.identities && user.identities.length === 0) {
-        throw new Error("An account with this email already exists. Please sign in instead.");
+      if (result.needsManualSignIn) {
+        navigate({ to: "/login" });
+        return;
       }
 
-      // 2. Insert scout profile
-      const { error: insertError } = await (supabase as any).from("scouts").insert({
-        user_id: userId,
-        name: form.name,
-        organisation: form.organisation,
-        role: form.role,
+      const { error: sessionError } = await supabase.auth.setSession({
+        access_token: result.access_token,
+        refresh_token: result.refresh_token,
       });
-
-      if (insertError) {
-        // Belt-and-suspenders: if a profile somehow already exists for this
-        // user (race condition, retry after a partial failure, etc.), give a
-        // clear message instead of a raw Postgres error.
-        if (insertError.code === "23505") {
-          throw new Error("You already have a scout profile for this account. Please sign in instead.");
-        }
-        throw new Error(`Profile creation failed: ${insertError.message}`);
-      }
+      if (sessionError) throw new Error(sessionError.message);
 
       navigate({ to: "/register/success" });
     } catch (err: any) {
@@ -102,7 +79,6 @@ function ScoutRegister() {
   return (
     <div className="min-h-screen bg-background">
       <div className="mx-auto max-w-lg px-4 sm:px-6 py-12 lg:py-20">
-        {/* Header */}
         <div className="mb-10">
           <Link to="/" className="text-xs uppercase tracking-widest text-muted-foreground hover:text-foreground">
             ← Back to home
@@ -159,12 +135,11 @@ function ScoutRegister() {
             </div>
             <div>
               <label className="block text-sm font-medium mb-1.5">Password</label>
-              <input
-                type="password"
+              <PasswordInput
                 value={form.password}
-                onChange={(e) => set("password", e.target.value)}
+                onChange={(v) => set("password", v)}
                 placeholder="At least 8 characters"
-                className="w-full px-4 py-3 rounded-xl border border-border bg-card text-sm focus:outline-none focus:ring-2 focus:ring-pitch"
+                className="w-full px-4 py-3 pr-12 rounded-xl border border-border bg-card text-sm focus:outline-none focus:ring-2 focus:ring-pitch"
               />
             </div>
           </div>
@@ -181,7 +156,7 @@ function ScoutRegister() {
 
           <p className="text-sm text-center text-muted-foreground">
             Already have an account?{" "}
-            <Link to="/" className="text-pitch hover:underline">Sign in</Link>
+            <Link to="/login" className="text-pitch hover:underline">Sign in</Link>
           </p>
         </div>
       </div>
