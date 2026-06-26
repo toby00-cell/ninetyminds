@@ -1,6 +1,8 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useRef, useState } from "react";
 import { supabase } from "@/lib/supabase-browser";
+import { serverSignUpClub } from "@/lib/api/auth.functions";
+import { PasswordInput } from "@/components/PasswordInput";
 
 export const Route = createFileRoute("/register/club")({
   head: () => ({
@@ -8,17 +10,6 @@ export const Route = createFileRoute("/register/club")({
   }),
   component: ClubRegister,
 });
-
-function slugify(name: string) {
-  const base = name
-    .toLowerCase()
-    .trim()
-    .replace(/[^a-z0-9\s-]/g, "")
-    .replace(/\s+/g, "-")
-    .replace(/-+/g, "-");
-  const suffix = Math.random().toString(36).slice(2, 6);
-  return `${base}-${suffix}`;
-}
 
 function ClubRegister() {
   const navigate = useNavigate();
@@ -54,41 +45,22 @@ function ClubRegister() {
     setError(null);
 
     try {
-      const { data: authData, error: authError } = await supabase.auth.signUp({
-        email: form.email,
-        password: form.password,
-        options: {
-          data: { role: "club", name: form.name },
-        },
-      });
+      // serverSignUpClub validates, sanitizes, creates the auth user, and
+      // inserts the clubs row server-side with the service role — this is
+      // what fixes the RLS error you hit: there's no longer a race between
+      // "session exists" and "insert the profile row" at all.
+      const result = await serverSignUpClub({ data: form });
 
-      if (authError) throw new Error(authError.message);
-
-      const user = authData.user;
-      if (!user) throw new Error("Signup failed — no user returned.");
-
-      // Same guard as scout/athlete signup: Supabase returns the existing
-      // user silently (no error) when the email is already registered.
-      if (user.identities && user.identities.length === 0) {
-        throw new Error("An account with this email already exists. Please sign in instead.");
+      if (result.needsManualSignIn) {
+        navigate({ to: "/login" });
+        return;
       }
 
-      const slug = slugify(form.name);
-
-      const { error: insertError } = await (supabase as any).from("clubs").insert({
-        user_id: user.id,
-        name: form.name,
-        slug,
-        location: form.location,
-        description: form.description || null,
+      const { error: sessionError } = await supabase.auth.setSession({
+        access_token: result.access_token,
+        refresh_token: result.refresh_token,
       });
-
-      if (insertError) {
-        if (insertError.code === "23505") {
-          throw new Error("A club with a very similar name already exists. Try a more specific name.");
-        }
-        throw new Error(`Club profile creation failed: ${insertError.message}`);
-      }
+      if (sessionError) throw new Error(sessionError.message);
 
       navigate({ to: "/register/success" });
     } catch (err: any) {
@@ -155,12 +127,11 @@ function ClubRegister() {
             </div>
             <div>
               <label className="block text-sm font-medium mb-1.5">Password</label>
-              <input
-                type="password"
+              <PasswordInput
                 value={form.password}
-                onChange={(e) => set("password", e.target.value)}
+                onChange={(v) => set("password", v)}
                 placeholder="At least 8 characters"
-                className="w-full px-4 py-3 rounded-xl border border-border bg-card text-sm focus:outline-none focus:ring-2 focus:ring-pitch"
+                className="w-full px-4 py-3 pr-12 rounded-xl border border-border bg-card text-sm focus:outline-none focus:ring-2 focus:ring-pitch"
               />
             </div>
           </div>
@@ -177,7 +148,7 @@ function ClubRegister() {
 
           <p className="text-sm text-center text-muted-foreground">
             Already have an account?{" "}
-            <Link to="/" className="text-pitch hover:underline">Sign in</Link>
+            <Link to="/login" className="text-pitch hover:underline">Sign in</Link>
           </p>
         </div>
       </div>
