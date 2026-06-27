@@ -10,10 +10,12 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SearchRouteImport } from './routes/search'
+import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as MapRouteImport } from './routes/map'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as LeaderboardRouteImport } from './routes/leaderboard'
 import { Route as HowItWorksRouteImport } from './routes/how-it-works'
+import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
 import { Route as FeaturedPlayersRouteImport } from './routes/featured-players'
 import { Route as DashboardMessagesRouteImport } from './routes/dashboard-messages'
 import { Route as CompareRouteImport } from './routes/compare'
@@ -37,6 +39,11 @@ const SearchRoute = SearchRouteImport.update({
   path: '/search',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ResetPasswordRoute = ResetPasswordRouteImport.update({
+  id: '/reset-password',
+  path: '/reset-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const MapRoute = MapRouteImport.update({
   id: '/map',
   path: '/map',
@@ -55,6 +62,11 @@ const LeaderboardRoute = LeaderboardRouteImport.update({
 const HowItWorksRoute = HowItWorksRouteImport.update({
   id: '/how-it-works',
   path: '/how-it-works',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ForgotPasswordRoute = ForgotPasswordRouteImport.update({
+  id: '/forgot-password',
+  path: '/forgot-password',
   getParentRoute: () => rootRouteImport,
 } as any)
 const FeaturedPlayersRoute = FeaturedPlayersRouteImport.update({
@@ -149,10 +161,12 @@ export interface FileRoutesByFullPath {
   '/compare': typeof CompareRoute
   '/dashboard-messages': typeof DashboardMessagesRoute
   '/featured-players': typeof FeaturedPlayersRoute
+  '/forgot-password': typeof ForgotPasswordRoute
   '/how-it-works': typeof HowItWorksRoute
   '/leaderboard': typeof LeaderboardRoute
   '/login': typeof LoginRoute
   '/map': typeof MapRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/search': typeof SearchRoute
   '/clubs/$clubId': typeof ClubsClubIdRoute
   '/dashboard/admin': typeof DashboardAdminRoute
@@ -173,10 +187,12 @@ export interface FileRoutesByTo {
   '/compare': typeof CompareRoute
   '/dashboard-messages': typeof DashboardMessagesRoute
   '/featured-players': typeof FeaturedPlayersRoute
+  '/forgot-password': typeof ForgotPasswordRoute
   '/how-it-works': typeof HowItWorksRoute
   '/leaderboard': typeof LeaderboardRoute
   '/login': typeof LoginRoute
   '/map': typeof MapRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/search': typeof SearchRoute
   '/clubs/$clubId': typeof ClubsClubIdRoute
   '/dashboard/admin': typeof DashboardAdminRoute
@@ -198,10 +214,12 @@ export interface FileRoutesById {
   '/compare': typeof CompareRoute
   '/dashboard-messages': typeof DashboardMessagesRoute
   '/featured-players': typeof FeaturedPlayersRoute
+  '/forgot-password': typeof ForgotPasswordRoute
   '/how-it-works': typeof HowItWorksRoute
   '/leaderboard': typeof LeaderboardRoute
   '/login': typeof LoginRoute
   '/map': typeof MapRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/search': typeof SearchRoute
   '/clubs/$clubId': typeof ClubsClubIdRoute
   '/dashboard/admin': typeof DashboardAdminRoute
@@ -224,10 +242,12 @@ export interface FileRouteTypes {
     | '/compare'
     | '/dashboard-messages'
     | '/featured-players'
+    | '/forgot-password'
     | '/how-it-works'
     | '/leaderboard'
     | '/login'
     | '/map'
+    | '/reset-password'
     | '/search'
     | '/clubs/$clubId'
     | '/dashboard/admin'
@@ -248,10 +268,12 @@ export interface FileRouteTypes {
     | '/compare'
     | '/dashboard-messages'
     | '/featured-players'
+    | '/forgot-password'
     | '/how-it-works'
     | '/leaderboard'
     | '/login'
     | '/map'
+    | '/reset-password'
     | '/search'
     | '/clubs/$clubId'
     | '/dashboard/admin'
@@ -272,10 +294,12 @@ export interface FileRouteTypes {
     | '/compare'
     | '/dashboard-messages'
     | '/featured-players'
+    | '/forgot-password'
     | '/how-it-works'
     | '/leaderboard'
     | '/login'
     | '/map'
+    | '/reset-password'
     | '/search'
     | '/clubs/$clubId'
     | '/dashboard/admin'
@@ -297,10 +321,12 @@ export interface RootRouteChildren {
   CompareRoute: typeof CompareRoute
   DashboardMessagesRoute: typeof DashboardMessagesRoute
   FeaturedPlayersRoute: typeof FeaturedPlayersRoute
+  ForgotPasswordRoute: typeof ForgotPasswordRoute
   HowItWorksRoute: typeof HowItWorksRoute
   LeaderboardRoute: typeof LeaderboardRoute
   LoginRoute: typeof LoginRoute
   MapRoute: typeof MapRoute
+  ResetPasswordRoute: typeof ResetPasswordRoute
   SearchRoute: typeof SearchRoute
   DashboardAdminRoute: typeof DashboardAdminRoute
   PlayersPlayerIdRoute: typeof PlayersPlayerIdRoute
@@ -322,6 +348,13 @@ declare module '@tanstack/react-router' {
       path: '/search'
       fullPath: '/search'
       preLoaderRoute: typeof SearchRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/reset-password': {
+      id: '/reset-password'
+      path: '/reset-password'
+      fullPath: '/reset-password'
+      preLoaderRoute: typeof ResetPasswordRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/map': {
@@ -350,6 +383,13 @@ declare module '@tanstack/react-router' {
       path: '/how-it-works'
       fullPath: '/how-it-works'
       preLoaderRoute: typeof HowItWorksRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/forgot-password': {
+      id: '/forgot-password'
+      path: '/forgot-password'
+      fullPath: '/forgot-password'
+      preLoaderRoute: typeof ForgotPasswordRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/featured-players': {
@@ -490,10 +530,12 @@ const rootRouteChildren: RootRouteChildren = {
   CompareRoute: CompareRoute,
   DashboardMessagesRoute: DashboardMessagesRoute,
   FeaturedPlayersRoute: FeaturedPlayersRoute,
+  ForgotPasswordRoute: ForgotPasswordRoute,
   HowItWorksRoute: HowItWorksRoute,
   LeaderboardRoute: LeaderboardRoute,
   LoginRoute: LoginRoute,
   MapRoute: MapRoute,
+  ResetPasswordRoute: ResetPasswordRoute,
   SearchRoute: SearchRoute,
   DashboardAdminRoute: DashboardAdminRoute,
   PlayersPlayerIdRoute: PlayersPlayerIdRoute,

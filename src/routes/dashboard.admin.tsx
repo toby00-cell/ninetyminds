@@ -395,7 +395,7 @@ function VerificationTab() {
     const table = item.type === "scout" ? "scouts" : "clubs";
     await (supabase as any).from(table).update({ verification_status: "verified", verification_notes: null }).eq("id", item.id);
     setItems((prev) => prev.map((i) => (i.type === item.type && i.id === item.id) ? { ...i, verification_status: "verified", verification_notes: null } : i));
-    (sendVerificationEmail as any)({ data: { userId: item.user_id, name: item.name, accountType: item.type, status: "verified" } })
+    sendVerificationEmail({ data: { userId: item.user_id, name: item.name, accountType: item.type, status: "verified" } })
       .catch((err: any) => console.error("Verification email failed to send:", err));
     setUpdating((u) => ({ ...u, [key]: false }));
   }
@@ -408,7 +408,7 @@ function VerificationTab() {
     const reason = rejectNote.trim();
     await (supabase as any).from(table).update({ verification_status: "rejected", verification_notes: reason }).eq("id", item.id);
     setItems((prev) => prev.map((i) => (i.type === item.type && i.id === item.id) ? { ...i, verification_status: "rejected", verification_notes: reason } : i));
-    (sendVerificationEmail as any)({ data: { userId: item.user_id, name: item.name, accountType: item.type, status: "rejected", reason } })
+    sendVerificationEmail({ data: { userId: item.user_id, name: item.name, accountType: item.type, status: "rejected", reason } })
       .catch((err: any) => console.error("Verification email failed to send:", err));
     setRejectingKey(null);
     setRejectNote("");

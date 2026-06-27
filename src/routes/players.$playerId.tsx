@@ -92,7 +92,7 @@ function SaveButton({ slug }: { slug: string }) {
 function ScoutContactForm({ playerSlug, playerName }: { playerSlug: string; playerName: string }) {
   const [open, setOpen] = useState(false);
   const [checkingAuth, setCheckingAuth] = useState(true);
-  const [scout, setScout] = useState<{ id: string; name: string; organisation: string; verified: boolean } | null>(null);
+  const [scout, setScout] = useState<{ id: string; name: string; organisation: string; verified: boolean; verificationStatus: string } | null>(null);
   const [form, setForm] = useState({ subject: "", body: "" });
   const [sending, setSending] = useState(false);
   const [sent, setSent] = useState(false);
@@ -103,8 +103,8 @@ function ScoutContactForm({ playerSlug, playerName }: { playerSlug: string; play
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) { setCheckingAuth(false); return; }
       const { data: scoutProfile } = await (supabase as any)
-        .from("scouts").select("name,organisation,verified").eq("user_id", user.id).single();
-      if (scoutProfile) setScout({ id: user.id, name: scoutProfile.name, organisation: scoutProfile.organisation, verified: scoutProfile.verified });
+        .from("scouts").select("name,organisation,verified,verification_status").eq("user_id", user.id).single();
+      if (scoutProfile) setScout({ id: user.id, name: scoutProfile.name, organisation: scoutProfile.organisation, verified: scoutProfile.verified, verificationStatus: scoutProfile.verification_status });
       setCheckingAuth(false);
     }
     loadScout();
@@ -142,6 +142,17 @@ function ScoutContactForm({ playerSlug, playerName }: { playerSlug: string; play
     return (
       <div className="bg-cream/5 border border-cream/10 rounded-xl px-4 py-3 text-sm text-cream/70">
         <Link to="/login" className="text-ember hover:underline">Sign in as a scout</Link> to contact this player.
+      </div>
+    );
+  }
+
+  if (scout.verificationStatus !== "verified") {
+    return (
+      <div className="bg-cream/5 border border-cream/10 rounded-xl px-4 py-3 text-sm text-cream/70">
+        Your scout account needs to be verified before you can contact players.{" "}
+        <Link to="/dashboard" className="text-ember hover:underline">
+          {scout.verificationStatus === "pending" ? "Check verification status →" : "Submit verification →"}
+        </Link>
       </div>
     );
   }
