@@ -39,7 +39,7 @@ function MessagesPage() {
       }
 
       const { data: scoutData } = await (supabase as any)
-        .from("scouts").select("name,organisation").eq("user_id", user.id).single();
+        .from("scouts").select("name,organisation,verification_status").eq("user_id", user.id).single();
       if (scoutData) {
         setProfile({ type: "scout", userId: user.id, ...scoutData });
         const { data } = await (supabase as any)
@@ -52,7 +52,7 @@ function MessagesPage() {
       }
 
       const { data: clubData } = await (supabase as any)
-        .from("clubs").select("name,location,slug").eq("user_id", user.id).single();
+        .from("clubs").select("name,location,slug,verification_status").eq("user_id", user.id).single();
       if (clubData) {
         setProfile({ type: "club", userId: user.id, ...clubData });
         const { data } = await (supabase as any)
@@ -261,6 +261,13 @@ function MessagesPage() {
                       {isLegacy ? (
                         <p className="text-xs text-muted-foreground text-center py-2">
                           This message was sent before replies were supported.
+                        </p>
+                      ) : (profile?.type === "scout" || profile?.type === "club") && profile.verification_status !== "verified" ? (
+                        <p className="text-xs text-muted-foreground text-center py-2">
+                          Your account needs to be verified before you can send messages.{" "}
+                          <Link to="/dashboard" className="text-pitch hover:underline">
+                            {profile.verification_status === "pending" ? "Check status →" : "Verify now →"}
+                          </Link>
                         </p>
                       ) : (
                         <div className="space-y-2">
